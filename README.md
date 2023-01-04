@@ -13,3 +13,16 @@ pip install -r requirements.txt
 
 flask --debug run
 ```
+
+
+```
+Use Google Chrome in Ubuntu on Windows Subsystem Linux
+
+Download and install Chrome:
+sudo apt update && sudo apt -y upgrade && sudo apt -y autoremove
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo apt -y install ./google-chrome-stable_current_amd64.deb
+
+Check that it’s installed ok:
+google-chrome --version
+```
