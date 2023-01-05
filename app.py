@@ -50,6 +50,12 @@ def pre_order_open_missing_check():
     print("Pre Order Open Missing Check starts")
     login_admin(driver)
 
+    # cross check with stock level
+    os.chdir("Check")
+    file_path = os.listdir()[0]
+    stock_df = pd.read_excel(file_path,index_col=None, header=0)
+
+    os.chdir("..")
     os.chdir(path())
     for file in os.listdir():
         # Check whether file is in text format or not
@@ -61,12 +67,19 @@ def pre_order_open_missing_check():
             ofs_df, preorder_df = pd.DataFrame(), pd.DataFrame()
             preorder_df = df[df['Preorder Product'] == "N"]
             stock_level = preorder_df['Quantity (DO NOT EDIT)']
+            ofs_df = preorder_df[preorder_df['Quantity (DO NOT EDIT)'] <= 0]
             ofs_df = preorder_df[stock_level <= 0]
+            for barcode in ofs_df["Barcode"]:
+                    check_stock_df = stock_df.loc[stock_df['商品條碼'] == barcode]
+                    if int(check_stock_df['預設倉庫']) <= 0:
+                        tmp_df = pd.DataFrame()
+                        tmp_df = df.loc[df['Barcode'] == barcode]
+                        print(barcode)
+                        if tmp_df.shape[0] > 0:
+                            for sku_id in tmp_df['Product ID (DO NOT EDIT)']:
+                                msg = click_procedure_missing_pre_order(driver, sku_id)
+                                print(msg)
 
-            for sku_id in ofs_df['Product ID (DO NOT EDIT)']:
-                msg = click_procedure_missing_pre_order(driver, sku_id)
-                print(msg)
-                
     return render_template("index.html", title="check pre order done")
 
 #close pre order when there is stock online
@@ -124,9 +137,11 @@ def click_procedure_missing_pre_order(driver, sku_id):
 
     driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
     print("Go to Price and Quantity Tab")
+
     accept_button = driver.find_element(By.XPATH,'//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input')
     accept_button_classess = accept_button.get_attribute("class")
     if "ng-touched" in accept_button_classess:
+        
         driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a').click()
         print("Go to Settings Tab")
         pre_order_switch = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')
@@ -149,7 +164,7 @@ def click_procedure_missing_pre_order(driver, sku_id):
 
             driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[1]/div/span[2]/button/span[2]').click()
             print("Saved changes, completed")
-        return " Pre order settings"
+        return "Pre order settings"
     else:
         return "No Missing Pre order settings"
 
@@ -185,10 +200,10 @@ def click_procedure_open_pre_order(driver, sku_id):
     print("Go to Price and Quantity Tab")
     accept_button = driver.find_element(By.XPATH,'//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input')
     accept_button_classess = accept_button.get_attribute("class")
-    if "ng-untouched" not in accept_button_classess:
+    if "ng-touched" not in accept_button_classess:
         accept_button.click()
-    print("Ticked Accept orders when out of stock")
-    driver.implicitly_wait(10)
+        print("Ticked Accept orders when out of stock")
+
     driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a').click()
     print("Go to Settings")
     pre_order_switch = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')
