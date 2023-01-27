@@ -36,11 +36,10 @@ def pre_order_open_check():
             df = df.drop(index=0)
             preorder_df = pd.DataFrame()
             preorder_df = df[df['Preorder Product'] == "Y"]
-
             for sku_id in preorder_df['Product ID (DO NOT EDIT)']:
-                click_procedure_open_pre_order(driver, sku_id)
+                pre_order_checking(driver, sku_id)
                 
-    return render_template("index.html", title="open pre order check done")
+    return render_template("index.html", title="pre order check done")
 
 #make sure all pre order items are already turn on all the settings
 @app.route('/pre-order-open-missing-check') 
@@ -114,6 +113,7 @@ def pre_order_close():
                     if tmp_df.shape[0] > 0:
                         for sku_id in tmp_df['Product ID (DO NOT EDIT)']:
                             click_procedure_close_pre_order(driver, str(sku_id))
+                            print(tmp_df['Product Name (Traditional Chinese)'], tmp_df['Barcode'])
 
     return render_template("index.html", title="close pre order done")
 
@@ -176,9 +176,10 @@ def click_procedure_close_pre_order(driver, sku_id):
     print("Go to Price and Quantity Tab")
     accept_button = driver.find_element(By.XPATH,'//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input')
     accept_button_classess = accept_button.get_attribute("class")
-    if "ng-untouched" in accept_button_classess:
-        accept_button.click()
-        print("Unticked Accept orders when out of stock")
+    print(bool(accept_button.is_selected))
+    #if "ng-untouched" in accept_button_classess:
+    #    accept_button.click()
+    #   print("Unticked Accept orders when out of stock")
 
     driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a').click()
     print("Go to Settings Tab")
@@ -192,37 +193,48 @@ def click_procedure_close_pre_order(driver, sku_id):
     driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[1]/div/span[2]/button/span[2]').click()
     print("Saved changes, completed")
     
-def click_procedure_open_pre_order(driver, sku_id):
+def pre_order_checking(driver, sku_id):
     print("Now browsing to SKU: " + sku_id)
     driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
 
     driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
     print("Go to Price and Quantity Tab")
-    accept_button = driver.find_element(By.XPATH,'//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input')
-    accept_button_classess = accept_button.get_attribute("class")
-    if "ng-touched" not in accept_button_classess:
+    accept_button = driver.find_element(By.XPATH,'//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input').is_selected
+    print(accept_button)
+
+    if not accept_button:
+        print("Not yet ticked accept orders when out of stock")
         accept_button.click()
-        print("Ticked Accept orders when out of stock")
+        print("Ticked accept orders when out of stock")  
+    else:
+        print("Already ticked accept orders when out of stock")
 
     driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a').click()
     print("Go to Settings")
+
     pre_order_switch = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')
     pre_order_switch_classess = pre_order_switch.get_attribute("class")
+
     if "switch-off" in pre_order_switch_classess:
+        print("Not yet switched on Preorder Product Setting")
         driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div/span[2]').click()
         print("Switched on Preorder Product Setting")
+
+        pre_order_msg_english = "This product is a pre-order product. It will arrive in about 7-14 working days, thank you for your patient! (AVAILABLE does not mean in stock)"
+        pre_order_msg_chinese = "此商品為預購商品，大約7-14工作天到貨，請耐心等候♡（尚有庫存不代表有現貨）"
         
-    pre_order_msg_english = "This product is a pre-order product. It will arrive in about 7-14 working days, thank you for your patient! (AVAILABLE does not mean in stock)"
-    pre_order_msg_chinese = "此商品為預購商品，大約7-14工作天到貨，請耐心等候♡（尚有庫存不代表有現貨）"
-    
-    english_msg_box = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[2]/div/div[2]/div/input')
-    english_msg_box.send_keys(Keys.CONTROL, 'a')
-    english_msg_box.send_keys(pre_order_msg_english)
-    print("Typed in Preorder Product Note (English)")
-    chinese_msg_box = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[3]/div/div[2]/div/input')
-    chinese_msg_box.send_keys(Keys.CONTROL, 'a')
-    chinese_msg_box.send_keys(pre_order_msg_chinese)
-    print("Typed in Preorder Product Note (Chinese)")
+        english_msg_box = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[2]/div/div[2]/div/input')
+        english_msg_box.send_keys(Keys.CONTROL, 'a')
+        english_msg_box.send_keys(pre_order_msg_english)
+        print("Typed in Preorder Product Note (English)")
+        chinese_msg_box = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[3]/div/div[2]/div/input')
+        chinese_msg_box.send_keys(Keys.CONTROL, 'a')
+        chinese_msg_box.send_keys(pre_order_msg_chinese)
+        print("Typed in Preorder Product Note (Chinese)")   
+    elif "switch-on" in pre_order_switch_classess:
+        print("Already switched on Preorder Product Setting")
+    else:
+        print("ERROR, switch not found")
 
     driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[1]/div/span[2]/button/span[2]').click()
     print("Saved changes, completed")
