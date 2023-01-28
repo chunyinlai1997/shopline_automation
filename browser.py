@@ -1,15 +1,8 @@
-from flask import Flask, render_template, request
 from selenium import webdriver
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import Keys
-import os
 import pandas as pd
-import math
-import time
 
 class Action():
     def __init__(self):
