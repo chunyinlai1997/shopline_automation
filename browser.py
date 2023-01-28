@@ -107,7 +107,6 @@ class Action():
                 print("pass clicking checkbox, already unchecked")
             else:
                 print("/////////////")
-
         else:
             driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
             print("Go to Variations Tab")
