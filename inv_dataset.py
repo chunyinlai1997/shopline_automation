@@ -12,7 +12,7 @@ class Converter():
             # Check whether file is in xls format
             if file.endswith(".xls"):
                 file_path = f"{file}"
-                read_file = pd.read_excel(file_path)
+                read_file = pd.read_excel(file_path, engine='xlrd')
                 file_name = ''
                 if data_folder == "data/updates/":
                     file_name = str(file) + '.csv'
