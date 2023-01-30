@@ -1,19 +1,17 @@
-# GitHub Codespaces ♥️ Flask
+# Waddy Store Shopline Automation
 
-Welcome to your shiny new Codespace running Flask! We've got everything fired up and running for you to explore Flask.
+Author: Willon Lai
 
-You've got a blank canvas to work on from a git perspective as well. There's a single initial commit with the what you're seeing right now - where you go from here is up to you!
+Release Version
+- 30/01/2023 Automation in Pre-order items
 
-Everything you do here is contained within this one codespace. There is no repository on GitHub yet. If and when you’re ready you can click "Publish Branch" and we’ll create your repository and push up your project. If you were just exploring then and have no further need for this code then you can simply delete your codespace and it's gone forever.
+
+
 
 To run this application:
 
 ```
 pip install -r requirements.txt    
-
-flask --debug run
-```
-
 
 ```
 Use Google Chrome in Ubuntu on Windows Subsystem Linux
@@ -25,4 +23,11 @@ sudo apt -y install ./google-chrome-stable_current_amd64.deb
 
 Check that it’s installed ok:
 google-chrome --version
+
+Use Google Chrome in Mac
+
+*Coming Soon*
+
 ```
+
+All right reserved, copyright @WillonLai
