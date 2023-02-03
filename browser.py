@@ -2,6 +2,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import Keys
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 
 class Action():
@@ -27,11 +29,14 @@ class Action():
             if  has_varient == False:
                 driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
                 print("Go to Price and Quantity Tab")
-                accept_button = driver.find_element(By.XPATH,'//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input').get_attribute('checked')
-                print("Checkbox Status is ",accept_button)
-                if accept_button == True or accept_button == "true":
+                 
+                wait = WebDriverWait(driver, 60)
+                accept_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input')))
+                accept_button_status = accept_button.get_attribute('checked')
+                print("Checkbox Status is ",accept_button_status)
+                if accept_button_status == True or accept_button_status == "true":
                     print("pass clicking checkbox, already checked")
-                elif accept_button == None:
+                elif accept_button_status == None:
                     print("clicking checkbox")
                     driver.find_element(By.XPATH,'//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input').click()
                 else:
@@ -39,11 +44,13 @@ class Action():
             else:
                 driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
                 print("Go to Variations Tab")
-                accept_button = driver.find_element(By.XPATH,'//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input').get_attribute('checked')
-                print("Checkbox Status is ",accept_button)
-                if accept_button == True or accept_button == "true":
+                wait = WebDriverWait(driver, 60)
+                accept_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input')))
+                accept_button_status = accept_button.get_attribute('checked')
+                print("Checkbox Status is ",accept_button_status)
+                if accept_button_status == True or accept_button_status == "true":
                     print("pass clicking checkbox, already checked")
-                elif accept_button == None:
+                elif accept_button_status == None:
                     print("clicking checkbox")
                     driver.find_element(By.XPATH,'//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input').click()
                 else:
@@ -52,6 +59,7 @@ class Action():
             driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a').click()
             print("Go to Settings Tab")
 
+            #WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input')))
             pre_order_switch = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')
             pre_order_switch_classess = pre_order_switch.get_attribute("class")
             if "switch-off" in pre_order_switch_classess:
@@ -98,24 +106,28 @@ class Action():
         if  has_varient == False:
             driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
             print("Go to Price and Quantity Tab")
-            accept_button = driver.find_element(By.XPATH,'//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input').get_attribute('checked')
-            print("Checkbox Status is ",accept_button)
-            if accept_button == True or accept_button == "true":
+            wait = WebDriverWait(driver, 60)
+            accept_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input')))
+            accept_button_status = accept_button.get_attribute('checked')
+            print("Checkbox Status is ",accept_button_status)
+            if accept_button_status == True or accept_button_status == "true":
                 print("clicking checkbox")
                 driver.find_element(By.XPATH,'//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input').click()
-            elif accept_button == None:
+            elif accept_button_status == None:
                 print("pass clicking checkbox, already unchecked")
             else:
                 print("/////////////")
         else:
             driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
             print("Go to Variations Tab")
-            accept_button = driver.find_element(By.XPATH,'//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input').get_attribute('checked')
-            print("Checkbox Status is ",accept_button)
-            if accept_button == True or accept_button == "true":
+            wait = WebDriverWait(driver, 60)
+            accept_button = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input')))
+            accept_button_status = accept_button.get_attribute('checked')
+            print("Checkbox Status is ",accept_button_status)
+            if accept_button_status == True or accept_button_status == "true":
                 print("clicking checkbox")
                 driver.find_element(By.XPATH,'//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input').click()
-            elif accept_button == None:
+            elif accept_button_status == None:
                 print("pass clicking checkbox, already unchecked")  
             else:
                 print("/////////////")
