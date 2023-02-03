@@ -8,3 +8,4 @@ websocket-client==1.3.3
 Werkzeug==2.2.2
 wrapt==1.14.1
 xlrd
+csv
