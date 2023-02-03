@@ -1,11 +1,23 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver import Keys
-import pandas as pd
+from selenium.webdriver import Keys, ActionChains
 
 class Action():
     def __init__(self):
+        pass
+
+    def pre_order_button_handler(self, driver, button_path):
+        accept_button = driver.find_element(By.XPATH, button_path)
+        accept_button_status = accept_button.get_attribute('checked')
+        print("Checkbox Status is ",accept_button_status)
+        if accept_button_status == True or accept_button_status == "true":
+            print("pass clicking checkbox, already checked")
+        elif accept_button_status == None:
+            print("clicking checkbox")
+            driver.find_element(By.XPATH,button_path).click()
+        else:
+            print("/////////////")
         pass
 
     def open_preorder(self, process_list: list):
@@ -24,39 +36,26 @@ class Action():
             print("Now browsing to SKU: " + sku_id)
             driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
 
-            if  has_varient == False:
+            if has_varient is False:
                 driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
                 print("Go to Price and Quantity Tab")
-                accept_button = driver.find_element(By.XPATH,'//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input').get_attribute('checked')
-                print("Checkbox Status is ",accept_button)
-                if accept_button == True or accept_button == "true":
-                    print("pass clicking checkbox, already checked")
-                elif accept_button == None:
-                    print("clicking checkbox")
-                    driver.find_element(By.XPATH,'//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input').click()
-                else:
-                    print("/////////////")
+                xpath = '//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input'
+                self.pre_order_button_handler(driver,xpath)
+        
             else:
                 driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
                 print("Go to Variations Tab")
-                accept_button = driver.find_element(By.XPATH,'//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input').get_attribute('checked')
-                print("Checkbox Status is ",accept_button)
-                if accept_button == True or accept_button == "true":
-                    print("pass clicking checkbox, already checked")
-                elif accept_button == None:
-                    print("clicking checkbox")
-                    driver.find_element(By.XPATH,'//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input').click()
-                else:
-                    print("/////////////")
+                xpath = '//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input'
+                self.pre_order_button_handler(driver,xpath)
             
             driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a').click()
             print("Go to Settings Tab")
 
-            pre_order_switch = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')
+            pre_order_switch = driver.find_element(By.XPATH, '//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')
             pre_order_switch_classess = pre_order_switch.get_attribute("class")
             if "switch-off" in pre_order_switch_classess:
                 print("Not yet switched on Preorder Product Setting")
-                driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div/span[2]').click()
+                ActionChains(driver).move_to_element(pre_order_switch).click().perform()
                 print("Switched on Preorder Product Setting")
 
                 pre_order_msg_english = "This product is a pre-order product. It will arrive in about 7-14 working days, thank you for your patient! (AVAILABLE does not mean in stock)"
@@ -77,7 +76,6 @@ class Action():
 
             driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[1]/div/span[2]/button/span[2]').click()
             print("Saved changes, completed")
-        print("All Completed, End Task.")    
 
     def close_preorder(self, process_list):
         driver = webdriver.Chrome(keep_alive=True)
@@ -95,42 +93,28 @@ class Action():
             print("Now browsing to SKU: " + sku_id)
             driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
 
-        if  has_varient == False:
-            driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
-            print("Go to Price and Quantity Tab")
-            accept_button = driver.find_element(By.XPATH,'//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input').get_attribute('checked')
-            print("Checkbox Status is ",accept_button)
-            if accept_button == True or accept_button == "true":
-                print("clicking checkbox")
-                driver.find_element(By.XPATH,'//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input').click()
-            elif accept_button == None:
-                print("pass clicking checkbox, already unchecked")
+            if has_varient is False:
+                driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
+                print("Go to Price and Quantity Tab")
+                xpath = '//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input'
+                self.pre_order_button_handler(driver,xpath)
             else:
-                print("/////////////")
-        else:
-            driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
-            print("Go to Variations Tab")
-            accept_button = driver.find_element(By.XPATH,'//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input').get_attribute('checked')
-            print("Checkbox Status is ",accept_button)
-            if accept_button == True or accept_button == "true":
-                print("clicking checkbox")
-                driver.find_element(By.XPATH,'//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input').click()
-            elif accept_button == None:
-                print("pass clicking checkbox, already unchecked")  
-            else:
-                print("/////////////")
+                driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
+                print("Go to Variations Tab")
+                xpath = '//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input'
+                self.pre_order_button_handler(driver,xpath)
         
-        driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a').click()
-        print("Go to Settings Tab")
+                driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a').click()
+                print("Go to Settings Tab")
 
-        pre_order_switch = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')
-        pre_order_switch_classess = pre_order_switch.get_attribute("class")
-        if "switch-on" in pre_order_switch_classess:
-            driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div/span[2]').click()
-            print("Switched off Preorder Product Setting")
-        else:
-            print("No action, Switch alraedy off")
+                pre_order_switch = driver.find_element(By.XPATH, '//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')
+                pre_order_switch_classess = pre_order_switch.get_attribute("class")
+                if "switch-on" in pre_order_switch_classess:
+                    ActionChains(driver).move_to_element(pre_order_switch).click().perform()
+                    print("Switched off Preorder Product Setting")
+                else:
+                    print("No action, Switch alraedy off")
 
-        driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[1]/div/span[2]/button/span[2]').click()
-        print("Saved changes, completed")
-    print("All Completed, End Task.")    
+                driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[1]/div/span[2]/button/span[2]').click()
+                print("Saved changes, completed")
+        
