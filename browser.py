@@ -1,7 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver import Keys
+from selenium.webdriver import Keys, ActionChains
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
@@ -59,12 +59,12 @@ class Action():
             driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a').click()
             print("Go to Settings Tab")
 
-            #WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.XPATH,'//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input')))
-            pre_order_switch = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')
+            wait = WebDriverWait(driver, 60)
+            pre_order_switch = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')))
             pre_order_switch_classess = pre_order_switch.get_attribute("class")
             if "switch-off" in pre_order_switch_classess:
                 print("Not yet switched on Preorder Product Setting")
-                driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div/span[2]').click()
+                ActionChains(driver).move_to_element(pre_order_switch).click().perform()
                 print("Switched on Preorder Product Setting")
 
                 pre_order_msg_english = "This product is a pre-order product. It will arrive in about 7-14 working days, thank you for your patient! (AVAILABLE does not mean in stock)"
@@ -85,7 +85,6 @@ class Action():
 
             driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[1]/div/span[2]/button/span[2]').click()
             print("Saved changes, completed")
-        print("All Completed, End Task.")    
 
     def close_preorder(self, process_list):
         driver = webdriver.Chrome(keep_alive=True)
@@ -135,14 +134,15 @@ class Action():
         driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a').click()
         print("Go to Settings Tab")
 
-        pre_order_switch = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')
+        wait = WebDriverWait(driver, 60)
+        pre_order_switch = wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')))
         pre_order_switch_classess = pre_order_switch.get_attribute("class")
         if "switch-on" in pre_order_switch_classess:
-            driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div/span[2]').click()
+            ActionChains(driver).move_to_element(pre_order_switch).click().perform()
             print("Switched off Preorder Product Setting")
         else:
             print("No action, Switch alraedy off")
 
         driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[1]/div/span[2]/button/span[2]').click()
         print("Saved changes, completed")
-    print("All Completed, End Task.")    
+        
