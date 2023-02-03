@@ -10,6 +10,9 @@ Run this command before go to jupyter notebook for running any aopplications.
 
 ```
 pip install -r requirements.txt    
+
+git pull
+
 ```
 
 In case using Google Chrome in Ubuntu on Windows Subsystem Linux
