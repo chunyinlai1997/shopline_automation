@@ -64,17 +64,21 @@ class Action():
 
             driver.implicitly_wait(10)
             if has_varient is False:
-                tab = driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a')
-                action = ActionChains(driver)
-                action.double_click(tab).perform()
+                driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
                 print("Go to Price and Quantity Tab")
                 xpath = '//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input'
                 self.pre_order_button_handler(driver,xpath,"open")
+                if self.pre_order_button_handler(driver,xpath,"open") is False:
+                    driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
+                    self.pre_order_button_handler(driver,xpath,"open")
             else:
                 driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
                 print("Go to Variations Tab")
                 xpath = '//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input'
-                self.pre_order_button_handler(driver,xpath,"open")
+                if self.pre_order_button_handler(driver,xpath,"open") is False:
+                    driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
+                    self.pre_order_button_handler(driver,xpath,"open")
+
             
             driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a').click()
             print("Go to Settings Tab")
