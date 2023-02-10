@@ -9,7 +9,7 @@ Release Version:
 Run this command before go to jupyter notebook for running any aopplications.
 
 ```
-pip install -r requirements.txt    
+pip install -r requirements.txt     
 
 git pull
 
