@@ -58,10 +58,10 @@ class Action():
         driver.find_element(By.ID, "reg-submit-button").click()
         print("Login sucessful")
         
-        for sku_id, bar, has_varient in process_list:
+        for sku_id, bar, has_varient, period_type in process_list:
             print("Now browsing to SKU: " + sku_id)
             driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
-
+            print(bar, period_type)
             driver.implicitly_wait(10)
             if has_varient is False:
                 driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
