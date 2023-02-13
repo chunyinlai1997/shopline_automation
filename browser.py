@@ -3,10 +3,26 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import Keys, ActionChains
 from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException
+import csv
 
 class Action():
     def __init__(self):
         pass
+
+    def period_type_handler(self, period_type):
+        file = open("template/period_template.csv", "r")
+        words = list(csv.reader(file, delimiter="\t"))
+        words.pop(0)
+        file.close()
+        chinese = ''
+        english = ''
+        if period_type == "A":
+            chinese, english = words[0][1], words[0][2]
+        elif period_type == "B":
+            chinese, english = words[1][1], words[1][2]
+        elif period_type == "C":
+            chinese, english = words[2][1], words[2][2]
+        return chinese, english
 
     def pre_order_button_handler(self, driver, button_path, mode):
         accept_button = driver.find_element(By.XPATH, button_path)
@@ -61,7 +77,6 @@ class Action():
         for sku_id, bar, has_varient, period_type in process_list:
             print("Now browsing to SKU: " + sku_id)
             driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
-            print(bar, period_type)
             driver.implicitly_wait(10)
             if has_varient is False:
                 driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
@@ -82,7 +97,6 @@ class Action():
             
             driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a').click()
             print("Go to Settings Tab")
-
             pre_order_switch = driver.find_element(By.XPATH, '//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')
             pre_order_switch_classess = pre_order_switch.get_attribute("class")
             if "switch-off" in pre_order_switch_classess:
@@ -90,9 +104,9 @@ class Action():
                 ActionChains(driver).move_to_element(pre_order_switch).click().perform()
                 print("Switched on Preorder Product Setting")
 
-                pre_order_msg_english = "This product is a pre-order product. It will arrive in about 7-14 working days, thank you for your patient! (AVAILABLE does not mean in stock)"
-                pre_order_msg_chinese = "此商品為預購商品，大約7-14工作天到貨，請耐心等候♡（尚有庫存不代表有現貨）"
-                
+                #pre_order_msg_english = "This product is a pre-order product. It will arrive in about 7-14 working days, thank you for your patient! (AVAILABLE does not mean in stock)"
+                #pre_order_msg_chinese = "此商品為預購商品，大約7-14工作天到貨，請耐心等候♡（尚有庫存不代表有現貨）"
+                pre_order_msg_chinese, pre_order_msg_english = self.period_type_handler(period_type) 
                 english_msg_box = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[2]/div/div[2]/div/input')
                 english_msg_box.send_keys(Keys.CONTROL, 'a')
                 english_msg_box.send_keys(pre_order_msg_english)
