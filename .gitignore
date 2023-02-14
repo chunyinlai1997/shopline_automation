@@ -1,5 +1,3 @@
 __pycache__/
-data/inventory/*.csv
-data/inventory/*.xls
-data/updates/*.xls
-data/updates/*.csv
+data/inventory
+data/updates
