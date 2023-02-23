@@ -122,10 +122,12 @@ class Action():
                 pre_order_msg_chinese, pre_order_msg_english = self.period_type_handler(period_type) 
                 english_msg_box = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[2]/div/div[2]/div/input')
                 english_msg_box.send_keys(Keys.CONTROL, 'a')
+                english_msg_box.clear()
                 english_msg_box.send_keys(pre_order_msg_english)
                 print("Typed in Preorder Product Note (English)")
                 chinese_msg_box = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[3]/div/div[2]/div/input')
                 chinese_msg_box.send_keys(Keys.CONTROL, 'a')
+                chinese_msg_box.clear()
                 chinese_msg_box.send_keys(pre_order_msg_chinese)
                 print("Typed in Preorder Product Note (Chinese)")   
             elif "switch-on" in pre_order_switch_classess:
