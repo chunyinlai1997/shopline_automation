@@ -81,9 +81,44 @@ class Preorder():
         
         return True
 
+    def PreOrderCloseAction(self, process_list, driver):
+        for sku_id, has_varient in process_list:
+            print("Now browsing to SKU: " + sku_id)
+            driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
+            driver.implicitly_wait(20)
+            time.sleep(5)
 
+            if has_varient is False:
+                driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
+                print("Go to Price and Quantity Tab")
+                xpath = '//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input'
+                if self.pre_order_button_handler(driver,xpath,"close") is False:
+                    driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
+                    self.pre_order_button_handler(driver,xpath,"close")
 
-    #following is the old version
+            else:
+                driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
+                print("Go to Variations Tab")
+                xpath = '//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input'
+                if self.pre_order_button_handler(driver,xpath,"close") is False:
+                    driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
+                    self.pre_order_button_handler(driver,xpath,"close")
+
+            element = WebDriverWait(driver, 90).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a')))
+            element.click()
+            print("Go to Settings Tab")
+
+            pre_order_switch = driver.find_element(By.XPATH, '//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')
+            pre_order_switch_classess = pre_order_switch.get_attribute("class")
+            if "switch-on" in pre_order_switch_classess:
+                ActionChains(driver).move_to_element(pre_order_switch).click().perform()
+                print("Switched off Preorder Product Setting")
+            else:
+                print("No action, Switch alraedy off")
+
+            driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[1]/div/span[2]/button/span[2]').click()
+            print("Saved changes, completed")
+
     def PreOrderClose(self):
         driver = webdriver.Chrome()
         process_list = []
@@ -128,44 +163,60 @@ class Preorder():
         
         print("Process items: ")
         print(process_list) 
-        for sku_id, has_varient in process_list:
+
+        self.PreOrderCloseAction(process_list, driver)
+
+        print("All Completed, End Task.")
+
+    def PreOrderOpenAction(self, process_list, driver):
+        for sku_id, has_varient, period_type in process_list:
             print("Now browsing to SKU: " + sku_id)
             driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
             driver.implicitly_wait(20)
-            time.sleep(5)
-
             if has_varient is False:
                 driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
                 print("Go to Price and Quantity Tab")
                 xpath = '//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input'
-                if self.pre_order_button_handler(driver,xpath,"close") is False:
+                self.pre_order_button_handler(driver,xpath,"open")
+                if self.pre_order_button_handler(driver,xpath,"open") is False:
                     driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
-                    self.pre_order_button_handler(driver,xpath,"close")
-
+                    self.pre_order_button_handler(driver,xpath,"open")
             else:
                 driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
                 print("Go to Variations Tab")
                 xpath = '//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input'
-                if self.pre_order_button_handler(driver,xpath,"close") is False:
+                if self.pre_order_button_handler(driver,xpath,"open") is False:
                     driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
-                    self.pre_order_button_handler(driver,xpath,"close")
+                    self.pre_order_button_handler(driver,xpath,"open")
 
             element = WebDriverWait(driver, 90).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a')))
             element.click()
             print("Go to Settings Tab")
-
             pre_order_switch = driver.find_element(By.XPATH, '//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')
             pre_order_switch_classess = pre_order_switch.get_attribute("class")
-            if "switch-on" in pre_order_switch_classess:
+            if "switch-off" in pre_order_switch_classess:
+                print("Not yet switched on Preorder Product Setting")
                 ActionChains(driver).move_to_element(pre_order_switch).click().perform()
-                print("Switched off Preorder Product Setting")
+                print("Switched on Preorder Product Setting")
+
+                pre_order_msg_chinese, pre_order_msg_english = self.period_type_handler(period_type) 
+                english_msg_box = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[2]/div/div[2]/div/input')
+                english_msg_box.send_keys(Keys.CONTROL, 'a')
+                english_msg_box.clear()
+                english_msg_box.send_keys(pre_order_msg_english)
+                print("Typed in Preorder Product Note (English)")
+                chinese_msg_box = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[3]/div/div[2]/div/input')
+                chinese_msg_box.send_keys(Keys.CONTROL, 'a')
+                chinese_msg_box.clear()
+                chinese_msg_box.send_keys(pre_order_msg_chinese)
+                print("Typed in Preorder Product Note (Chinese)")   
+            elif "switch-on" in pre_order_switch_classess:
+                print("Already switched on Preorder Product Setting")
             else:
-                print("No action, Switch alraedy off")
+                print("ERROR, switch not found")
 
             driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[1]/div/span[2]/button/span[2]').click()
             print("Saved changes, completed")
-
-        print("All Completed, End Task.")
 
     def PreOrderOpen(self):
         driver = webdriver.Chrome()
@@ -181,7 +232,6 @@ class Preorder():
         while human.lower() != "ok":
             human = input("Please type 'ok' when done: ")
         print("Login Shopline Admin manually.")
-        
 
         data = self.xls_to_list('search/namelist.xls')
         data.pop(0)
@@ -235,54 +285,7 @@ class Preorder():
         print("Process items: ")
         print(process_list) 
         
-        for sku_id, has_varient, period_type in process_list:
-            print("Now browsing to SKU: " + sku_id)
-            driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
-            driver.implicitly_wait(20)
-            if has_varient is False:
-                driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
-                print("Go to Price and Quantity Tab")
-                xpath = '//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input'
-                self.pre_order_button_handler(driver,xpath,"open")
-                if self.pre_order_button_handler(driver,xpath,"open") is False:
-                    driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
-                    self.pre_order_button_handler(driver,xpath,"open")
-            else:
-                driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
-                print("Go to Variations Tab")
-                xpath = '//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input'
-                if self.pre_order_button_handler(driver,xpath,"open") is False:
-                    driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
-                    self.pre_order_button_handler(driver,xpath,"open")
-
-            element = WebDriverWait(driver, 90).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a')))
-            element.click()
-            print("Go to Settings Tab")
-            pre_order_switch = driver.find_element(By.XPATH, '//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')
-            pre_order_switch_classess = pre_order_switch.get_attribute("class")
-            if "switch-off" in pre_order_switch_classess:
-                print("Not yet switched on Preorder Product Setting")
-                ActionChains(driver).move_to_element(pre_order_switch).click().perform()
-                print("Switched on Preorder Product Setting")
-
-                pre_order_msg_chinese, pre_order_msg_english = self.period_type_handler(period_type) 
-                english_msg_box = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[2]/div/div[2]/div/input')
-                english_msg_box.send_keys(Keys.CONTROL, 'a')
-                english_msg_box.clear()
-                english_msg_box.send_keys(pre_order_msg_english)
-                print("Typed in Preorder Product Note (English)")
-                chinese_msg_box = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[3]/div/div[2]/div/input')
-                chinese_msg_box.send_keys(Keys.CONTROL, 'a')
-                chinese_msg_box.clear()
-                chinese_msg_box.send_keys(pre_order_msg_chinese)
-                print("Typed in Preorder Product Note (Chinese)")   
-            elif "switch-on" in pre_order_switch_classess:
-                print("Already switched on Preorder Product Setting")
-            else:
-                print("ERROR, switch not found")
-
-            driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[1]/div/span[2]/button/span[2]').click()
-            print("Saved changes, completed")
-
+        self.PreOrderOpenAction(process_list, driver)
+        
         print("All Completed, End Task.")
 
