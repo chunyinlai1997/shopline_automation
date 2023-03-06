@@ -11,3 +11,4 @@ xlrd==2.0.
 requests==2.28.2
 google-api-python-client==2.78.0
 bs4==0.0.1
+selenium-recaptcha-solver==1.2.2

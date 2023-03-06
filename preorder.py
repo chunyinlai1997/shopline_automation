@@ -1,17 +1,91 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-import browser
+from selenium.webdriver import Keys, ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException
 import json
+import time
+import xlrd
 
 class Preorder():
 
     def __init__(self) -> None:
         pass
 
+    def xls_to_list(self, path):
+        workbook = xlrd.open_workbook(path)
+        worksheet = workbook.sheet_by_index(0)
+        num_rows = worksheet.nrows
+        num_cols = worksheet.ncols
+        data = []
+
+        for row_idx in range(num_rows):
+            row_data = []
+            for col_idx in range(num_cols):
+                cell_value = worksheet.cell_value(row_idx, col_idx)
+                row_data.append(cell_value)
+            data.append(row_data)    
+
+        return data
+
+    def period_type_handler(self, period_type):
+        words = self.xls_to_list('template/period_template.xls')
+        words.pop(0)
+        chinese = ''
+        english = ''
+
+        if period_type == "A":
+            chinese, english = words[0][1], words[0][2]
+        elif period_type == "B":
+            chinese, english = words[1][1], words[1][2]
+        elif period_type == "C":
+            chinese, english = words[2][1], words[2][2]
+        return chinese, english
+
+    def pre_order_button_handler(self, driver, button_path, mode):
+        accept_button = driver.find_element(By.XPATH, button_path)
+        accept_button_status = accept_button.get_attribute('checked')
+        print("Checkbox Status is ",accept_button_status)
+
+        if mode == "open":
+            if accept_button_status == True or accept_button_status == "true":
+                print("pass clicking checkbox, already checked")
+            elif accept_button_status == None:
+                print("clicking checkbox")
+                try:
+                    driver.find_element(By.XPATH,button_path).click()
+                except ElementNotInteractableException:
+                    print("ElementNotInteractableException")
+                    return False
+                except NoSuchElementException:
+                    print("NoSuchElementException")
+                    return False
+            else:
+                pass
+        elif mode == "close":
+            if accept_button_status == True or accept_button_status == "true":
+                print("clicking checkbox")
+                try:
+                    driver.find_element(By.XPATH,button_path).click()
+                except ElementNotInteractableException:
+                    print("ElementNotInteractableException")
+                    return False
+                except NoSuchElementException:
+                    print("NoSuchElementException")
+                    return False              
+            elif accept_button_status == None:
+                print("pass clicking checkbox, already unchecked")
+            else:
+                pass
+        
+        return True
+
+
+
     #following is the old version
     def PreOrderClose(self):
         driver = webdriver.Chrome()
-        clicker = browser.Action()
         process_list = []
 
         username = "info@waddystore.com"
@@ -19,12 +93,21 @@ class Preorder():
         driver.get('https://admin.shoplineapp.com/admin/waddystore/')
         driver.find_element(By.ID, "staff_email").send_keys(username)
         driver.find_element(By.ID, "staff_password").send_keys(password)
-        driver.find_element(By.ID, "reg-submit-button").click()
-        print("Login Shopline Admin successful")
+
+        human = input("Is there a captcha? If done, please type 'ok': ")
+        while human.lower() != "ok":
+            human = input("Please type 'ok' when done: ")
+        print("Login Shopline Admin manually.")
+        
+        time.sleep(5)
 
         driver.get('https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products?page=1&offset=0&limit=1000&scope=preorder')
+        
+        time.sleep(5)
+
         html_response = driver.find_element(By.XPATH, '/html/body/pre').text
         json_data = json.loads(html_response)
+        print("Collected data....")
 
         product_items = json_data['data']['items']
         print("total items found: " + str( len(product_items)))
@@ -42,15 +125,50 @@ class Preorder():
             if int(quantity) > 0 and status == "active" and is_preorder == True:
                 print(chinese_name)
                 process_list.append([sku_id, has_varient])
-
+        
         print("Process items: ")
         print(process_list) 
-        clicker.close_preorder(process_list)   
+        for sku_id, has_varient in process_list:
+            print("Now browsing to SKU: " + sku_id)
+            driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
+            driver.implicitly_wait(20)
+            time.sleep(5)
+
+            if has_varient is False:
+                driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
+                print("Go to Price and Quantity Tab")
+                xpath = '//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input'
+                if self.pre_order_button_handler(driver,xpath,"close") is False:
+                    driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
+                    self.pre_order_button_handler(driver,xpath,"close")
+
+            else:
+                driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
+                print("Go to Variations Tab")
+                xpath = '//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input'
+                if self.pre_order_button_handler(driver,xpath,"close") is False:
+                    driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
+                    self.pre_order_button_handler(driver,xpath,"close")
+
+            element = WebDriverWait(driver, 90).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a')))
+            element.click()
+            print("Go to Settings Tab")
+
+            pre_order_switch = driver.find_element(By.XPATH, '//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')
+            pre_order_switch_classess = pre_order_switch.get_attribute("class")
+            if "switch-on" in pre_order_switch_classess:
+                ActionChains(driver).move_to_element(pre_order_switch).click().perform()
+                print("Switched off Preorder Product Setting")
+            else:
+                print("No action, Switch alraedy off")
+
+            driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[1]/div/span[2]/button/span[2]').click()
+            print("Saved changes, completed")
+
         print("All Completed, End Task.")
 
     def PreOrderOpen(self):
         driver = webdriver.Chrome()
-        clicker = browser.Action()
         process_list = []
 
         username = "info@waddystore.com"
@@ -58,10 +176,14 @@ class Preorder():
         driver.get('https://admin.shoplineapp.com/admin/waddystore/')
         driver.find_element(By.ID, "staff_email").send_keys(username)
         driver.find_element(By.ID, "staff_password").send_keys(password)
-        driver.find_element(By.ID, "reg-submit-button").click()
-        print("Login Shopline Admin successful")
+        
+        human = input("Is there a captcha? If done, please type 'ok': ")
+        while human.lower() != "ok":
+            human = input("Please type 'ok' when done: ")
+        print("Login Shopline Admin manually.")
+        
 
-        data = clicker.xls_to_list('search/namelist.xls')
+        data = self.xls_to_list('search/namelist.xls')
         data.pop(0)
         search_for = dict([[row[0], row[1]] for row in data])
 
@@ -77,7 +199,10 @@ class Preorder():
         print(exclude_list)
         print("items found: ")
         
+        time.sleep(5)
+
         for key in search_for.keys():
+            time.sleep(5)
             driver.get('https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products?page=1&offset=0&limit=10000&query='+ key +'&scope=search')
             html_response = driver.find_element(By.XPATH, '/html/body/pre').text
             json_data = json.loads(html_response)
@@ -106,125 +231,58 @@ class Preorder():
                         print(chinese_name)
                         process_list.append([sku_id, has_varient, search_for[key]])
 
+        print("Collected data....")
         print("Process items: ")
         print(process_list) 
-        clicker.open_preorder(process_list)   
+        
+        for sku_id, has_varient, period_type in process_list:
+            print("Now browsing to SKU: " + sku_id)
+            driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
+            driver.implicitly_wait(20)
+            if has_varient is False:
+                driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
+                print("Go to Price and Quantity Tab")
+                xpath = '//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input'
+                self.pre_order_button_handler(driver,xpath,"open")
+                if self.pre_order_button_handler(driver,xpath,"open") is False:
+                    driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
+                    self.pre_order_button_handler(driver,xpath,"open")
+            else:
+                driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
+                print("Go to Variations Tab")
+                xpath = '//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input'
+                if self.pre_order_button_handler(driver,xpath,"open") is False:
+                    driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
+                    self.pre_order_button_handler(driver,xpath,"open")
+
+            element = WebDriverWait(driver, 90).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a')))
+            element.click()
+            print("Go to Settings Tab")
+            pre_order_switch = driver.find_element(By.XPATH, '//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div')
+            pre_order_switch_classess = pre_order_switch.get_attribute("class")
+            if "switch-off" in pre_order_switch_classess:
+                print("Not yet switched on Preorder Product Setting")
+                ActionChains(driver).move_to_element(pre_order_switch).click().perform()
+                print("Switched on Preorder Product Setting")
+
+                pre_order_msg_chinese, pre_order_msg_english = self.period_type_handler(period_type) 
+                english_msg_box = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[2]/div/div[2]/div/input')
+                english_msg_box.send_keys(Keys.CONTROL, 'a')
+                english_msg_box.clear()
+                english_msg_box.send_keys(pre_order_msg_english)
+                print("Typed in Preorder Product Note (English)")
+                chinese_msg_box = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[3]/div/div[2]/div/input')
+                chinese_msg_box.send_keys(Keys.CONTROL, 'a')
+                chinese_msg_box.clear()
+                chinese_msg_box.send_keys(pre_order_msg_chinese)
+                print("Typed in Preorder Product Note (Chinese)")   
+            elif "switch-on" in pre_order_switch_classess:
+                print("Already switched on Preorder Product Setting")
+            else:
+                print("ERROR, switch not found")
+
+            driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[1]/div/span[2]/button/span[2]').click()
+            print("Saved changes, completed")
+
         print("All Completed, End Task.")
 
-    
-
-'''
-def process_update_data (self, inventory_folder_path):
-    inventory_files = inv_dataset.Converter()
-    inventory_files.to_csv(inventory_folder_path)
-
-    inventory = inv_dataset.Reader()
-    inv_df = inventory.get_df(inventory_folder_path)
-
-    return inv_df
-
-#following is the old version
-def PreOrderClose(self, udpate_folder_path, inventory_folder_path):   
-    print(os.getcwd())
-
-    inv_df = self.process_update_data(inventory_folder_path)
-
-    clicker = browser.Action()
-    process_list = []
-    
-    update_files = inv_dataset.Converter()
-    update_files.to_csv(udpate_folder_path)
-
-    #Start update procedure
-    os.chdir(udpate_folder_path)
-    
-    #go thru each bulk update form csv
-    for file in os.listdir():
-        if file.endswith(".csv"):
-            #in each bulk update form csv
-            file_path = f"{file}"
-            df = pd.read_csv(file_path, index_col=None, header=0)
-            df = df.drop(index=0)
-
-            df = df.loc[df['Preorder Product'] == "Y"]
-            df = df.loc[df['Status'] == "Y"]
-            
-            for barcode in df['Barcode']:
-                df2 = inv_df.loc[inv_df['商品條碼'] == barcode]
-                df2 = df2.loc[df2['預設倉庫'] > 0]
-                for bar in df2['商品條碼']:
-                    sku_id = df[df['Barcode']== bar]['Product ID (DO NOT EDIT)'].item()
-                    varient_id = df[df['Barcode']== bar]['Variant ID (DO NOT EDIT)'].item()
-                    has_varient = True
-                    if pd.isnull(varient_id):
-                        has_varient = False
-                    process_list.append([sku_id, has_varient])
-
-    os.chdir("../..") 
-    print(process_list) 
-    clicker.close_preorder(process_list)   
-    print("All Completed, End Task.")    
-
-
-    def PreOrderOpen(self, udpate_folder_path, inventory_folder_path):
-        print(os.getcwd())
-        
-        inv_df = self.process_update_data(inventory_folder_path)
-
-        clicker = browser.Action()
-
-        data = clicker.xls_to_list('search/namelist.xls')
-        data.pop(0)
-        search_for = dict([[row[0], row[1]] for row in data])
-
-        process_list=[]
-
-        #Start update procedure
-        #go thru each bulk update form csv
-        os.chdir(udpate_folder_path)
-
-        for file in os.listdir():
-            if file.endswith(".csv"):
-                #in each bulk update form csv
-                file_path = f"{file}"
-                update_df = pd.read_csv(file_path, index_col=None, header=0)
-                update_df = update_df.drop(index=0)
-
-                period_type = ''
-
-                df = update_df.loc[update_df['Product Name (Traditional Chinese)'].str.contains('|'.join(list(search_for.keys())), na = False)]
-                
-                df = df.loc[df['Preorder Product'] == "N"]
-                df = df.loc[df['Status'] == "Y"]
-
-                discon_tag = 'dis'
-                df = df.loc[~df['Product Tag'].str.contains(discon_tag, na=False)]
-
-                discon_tag_manual = 'shortage'
-                df = df.loc[~df['Product Tag'].str.contains(discon_tag_manual, na=False)]
-                
-                for barcode in df['Barcode']:
-                    df2 = inv_df.loc[inv_df['商品條碼'] == barcode]
-                    df2 = df2.loc[df2['預設倉庫'] <= 0]
-                    for bar in df2['商品條碼']:
-                        sku_id = df[df['Barcode']== bar]['Product ID (DO NOT EDIT)'].item()
-                        varient_id = df[df['Barcode']== bar]['Variant ID (DO NOT EDIT)'].item()
-                        chinese_product_name = df[df['Barcode']== bar]['Product Name (Traditional Chinese)'].item()
-
-                        for key in search_for.keys():
-                            if key in chinese_product_name:
-                                period_type = search_for[key]
-                        
-                        has_varient = True
-                        if pd.isnull(varient_id):
-                            has_varient = False
-                        
-                        process_list.append([sku_id, has_varient, period_type])
-
-        print(process_list) 
-        os.chdir("../..") 
-        clicker.open_preorder(process_list)   
-        print("All Completed, End Task.")    
-
-
-'''
