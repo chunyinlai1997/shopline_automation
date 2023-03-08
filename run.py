@@ -18,4 +18,3 @@ if os_name == 'Windows':
     subprocess.call(['python', '-m', 'main.py'])
 else:
     subprocess.call(['python', 'main.py'])
-

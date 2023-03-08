@@ -5,6 +5,13 @@ Author: Willon Lai
 - Functions
   1. Automotaion in handling pre-order
 
+
+Prerequisite:
+
+* pip
+* python (ver 3.9 or above)
+* git
+
 Run this command before go to jupyter notebook for running any aopplications.
 
 ```
