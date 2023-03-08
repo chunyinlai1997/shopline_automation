@@ -252,7 +252,7 @@ class Preorder():
         time.sleep(5)
 
         for key in search_for.keys():
-            time.sleep(5)
+            time.sleep(2)
             driver.get('https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products?page=1&offset=0&limit=10000&query='+ key +'&scope=search')
             html_response = driver.find_element(By.XPATH, '/html/body/pre').text
             json_data = json.loads(html_response)
