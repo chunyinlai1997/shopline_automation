@@ -7,6 +7,7 @@ from selenium.common.exceptions import NoSuchElementException, ElementNotInterac
 import json
 import time
 import xlrd
+import logging
 
 class Preorder():
 
@@ -169,7 +170,7 @@ class Preorder():
         print("Collected data....")
 
         product_items = json_data['data']['items']
-        print("total items found: " + str( len(product_items)))
+        print("total items found: " + str(len(product_items)))
         
         for item in product_items:
             quantity = item['quantity']
@@ -183,11 +184,14 @@ class Preorder():
 
             if int(quantity) > 0 and status == "active" and is_preorder == True:
                 print(chinese_name)
+                logging.info(chinese_name)
                 process_list.append([sku_id, has_varient])
         
         print("Process items: ")
         print(process_list) 
-
+        logging.info("process_list as following")
+        logging.info(process_list)
+        print("total items to execute: " + str(len(process_list)))
         self.PreOrderCloseAction(process_list, driver)
 
         print("All Completed, End Task.")
@@ -257,6 +261,7 @@ class Preorder():
 
         print("Your exclude list:")
         print(exclude_list)
+        print("You may edit under 'search/namelist.xls'")
         print("items found: ")
         
         time.sleep(3)
@@ -289,13 +294,106 @@ class Preorder():
                 if not_dis == True and chinese_name not in exclude_list:
                     if quantity <= 0 and not is_preorder and status == "active":
                         print(chinese_name)
+                        logging.info(chinese_name)
                         process_list.append([sku_id, has_varient, search_for[key]])
 
         print("Collected data....")
         print("Process items: ")
         print(process_list) 
-        
+        logging.info("process_list as following")
+        logging.info(process_list)
+        print("total items to execute: " + str(len(process_list)))
+
         self.PreOrderOpenAction(process_list, driver)
         
         print("All Completed, End Task.")
 
+    def PreOrderCloseKeywords(self):
+        driver = webdriver.Chrome()
+        
+        self.shopline_login(driver)
+
+        time.sleep(5)
+
+        driver.get('https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products?page=1&offset=0&limit=1000&scope=preorder')
+        html_response = driver.find_element(By.XPATH, '/html/body/pre').text
+        json_data = json.loads(html_response)
+
+        product_items = json_data['data']['items']
+        print("total items found: " + str( len(product_items)))
+        keyword = input("Please input the keywords or exact product Chinese name: ")
+        logging.info('Submitted keyword: ' + keyword)
+        process_list = []
+
+        # Loop through each item in the JSON data and check if the keyword matches any value in the "title_translations" dictionary
+        for item in product_items:
+            chinese_name = item['title_translations']['zh-hant']
+            sku_id = item['id']
+            has_varient = False
+            print()
+            if len(item["variations"]) > 0:
+                has_varient = True
+            
+            if keyword in chinese_name:
+                print(chinese_name)
+                process_list.append([sku_id, has_varient])
+
+        print("Process items: ")
+        print(process_list) 
+        print("total items to execute: " + str(len(process_list)))
+        logging.info("process_list as following")
+        logging.info(process_list)
+
+        self.PreOrderCloseAction(process_list, driver)
+        print("Task Complete")
+
+    def FindMissingPreOrderOpen(self):
+            driver = webdriver.Chrome()
+            
+            self.shopline_login(driver)
+
+            time.sleep(5)
+
+            keyword = input("Please input the keywords or exact product Chinese name: ")
+
+            driver.get('https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products?page=1&offset=0&limit=10000&query='+ keyword+'&scope=search')
+            html_response = driver.find_element(By.XPATH, '/html/body/pre').text
+            json_data = json.loads(html_response)
+
+            product_items = json_data['data']['items']
+            print("total items found: " + str(len(product_items)))
+            
+            process_list = []
+
+            data = self.xls_to_list('search/namelist.xls')
+            data.pop(0)
+            search_for = dict([[row[0], row[1]] for row in data])
+
+            for item in product_items:
+                chinese_name = item['title_translations']['zh-hant']
+                sku_id = item['id']
+                quantity = item['quantity']
+                has_varient = False
+                if quantity > 0: 
+                    pass
+                else:
+                    if len(item["variations"]) > 0:
+                        has_varient = True
+
+                    if keyword in chinese_name:
+                        if any(key in chinese_name for key in search_for.keys()):
+                            print(chinese_name + " in pre-order keyword list, skip")
+                            logging.info(chinese_name + " in pre-order keyword list, skip")
+                        else:
+                            print(chinese_name)
+                            logging.info(chinese_name)
+                            process_list.append([sku_id, has_varient, 'C'])
+
+            print("Process items: ")
+            print(process_list) 
+            print("total items to execute: " + str(len(process_list)))
+            logging.info("process_list as following")
+            logging.info(process_list)
+            
+            self.PreOrderOpenAction(process_list, driver)
+            print("Task Complete")
