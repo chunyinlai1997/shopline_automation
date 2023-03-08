@@ -13,6 +13,39 @@ class Preorder():
     def __init__(self) -> None:
         pass
 
+    def shopline_login(self, driver):
+        username = "info@waddystore.com"
+        password = "Waddy1208"
+        driver.get('https://admin.shoplineapp.com/admin/waddystore/')
+        driver.find_element(By.ID, "staff_email").send_keys(username)
+        driver.find_element(By.ID, "staff_password").send_keys(password)
+
+        wait = WebDriverWait(driver, 120)
+
+        while True:
+            try:
+                time.sleep(2)
+                submit_btn = driver.find_element(By.XPATH, '//*[@id="reg-submit-button"]')
+                submit_btn.click()
+            except:
+                print("Unable to logged in automatically.")
+
+            # Check if the element is already loaded
+            try:
+                wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[3]/div[2]/div[1]/div[1]/div/react-app')))
+                print("Successfully logged in to Shopline.")
+                break
+            except:
+                pass
+            
+            # Ask the user if there is a captcha
+            human = input("Is there a captcha? If done, please type 'ok': ")
+            while human.lower() != "ok":
+                human = input("Please type 'ok' when done: ")
+            
+            # Wait for the new page to load
+            wait.until(EC.staleness_of(driver.find_element_by_tag_name('html')))
+        
     def xls_to_list(self, path):
         workbook = xlrd.open_workbook(path)
         worksheet = workbook.sheet_by_index(0)
@@ -123,16 +156,7 @@ class Preorder():
         driver = webdriver.Chrome()
         process_list = []
 
-        username = "info@waddystore.com"
-        password = "Waddy1208"
-        driver.get('https://admin.shoplineapp.com/admin/waddystore/')
-        driver.find_element(By.ID, "staff_email").send_keys(username)
-        driver.find_element(By.ID, "staff_password").send_keys(password)
-
-        human = input("Is there a captcha? If done, please type 'ok': ")
-        while human.lower() != "ok":
-            human = input("Please type 'ok' when done: ")
-        print("Login Shopline Admin manually.")
+        self.shopline_login(driver)
         
         time.sleep(5)
 
@@ -222,37 +246,23 @@ class Preorder():
         driver = webdriver.Chrome()
         process_list = []
 
-        username = "info@waddystore.com"
-        password = "Waddy1208"
-        driver.get('https://admin.shoplineapp.com/admin/waddystore/')
-        driver.find_element(By.ID, "staff_email").send_keys(username)
-        driver.find_element(By.ID, "staff_password").send_keys(password)
-        
-        human = input("Is there a captcha? If done, please type 'ok': ")
-        while human.lower() != "ok":
-            human = input("Please type 'ok' when done: ")
-        print("Login Shopline Admin manually.")
+        self.shopline_login(driver)
 
         data = self.xls_to_list('search/namelist.xls')
         data.pop(0)
         search_for = dict([[row[0], row[1]] for row in data])
 
-        exclude_list = []
-        while True:
-            get_exclude = input("Any product you want to exclude? Please type in one by one (if no more please type 'N') : ")
-            if get_exclude.lower() == 'n':
-                break
-            else: 
-                exclude_list.append(get_exclude)
+        exclude_list = self.xls_to_list('search/exclude.xls')
+        exclude_list.pop(0)
 
         print("Your exclude list:")
         print(exclude_list)
         print("items found: ")
         
-        time.sleep(5)
+        time.sleep(3)
 
         for key in search_for.keys():
-            time.sleep(2)
+            time.sleep(0.5)
             driver.get('https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products?page=1&offset=0&limit=10000&query='+ key +'&scope=search')
             html_response = driver.find_element(By.XPATH, '/html/body/pre').text
             json_data = json.loads(html_response)
