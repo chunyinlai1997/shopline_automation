@@ -2,9 +2,8 @@
 
 Author: Willon Lai
 
-Release Version:
-
-- 30/01/2023 Automation in Pre-order items
+- Functions
+  1. Automotaion in handling pre-order
 
 Run this command before go to jupyter notebook for running any aopplications.
 
@@ -16,7 +15,7 @@ git pull
 Run the code:
 
 ```
-python main.py
+python run.py
 ```
 
 Prepare for the Browser (recommend using Chrome)
@@ -40,7 +39,6 @@ google-chrome --version
 * Using Google Chrome in Mac
 
 Just make sure you have installed Chrome in your Mac
-
 
 All right reserved, copyright @WillonLai ;)
 Email: prologic338@gmail.com
