@@ -29,6 +29,7 @@ class Preorder():
                 submit_btn = driver.find_element(By.XPATH, '//*[@id="reg-submit-button"]')
                 submit_btn.click()
             except:
+                logging.debug("Unable to logged in automatically, blocked by Captcha")
                 print("Unable to logged in automatically.")
 
             # Check if the element is already loaded
@@ -42,6 +43,7 @@ class Preorder():
             # Ask the user if there is a captcha
             human = input("Is there a captcha? If done, please type 'ok': ")
             while human.lower() != "ok":
+                logging.debug("there is still blocking or captcha issue")
                 human = input("Please type 'ok' when done: ")
             
             # Wait for the new page to load
@@ -75,6 +77,15 @@ class Preorder():
             chinese, english = words[1][1], words[1][2]
         elif period_type == "C":
             chinese, english = words[2][1], words[2][2]
+        elif period_type == "D":
+            chinese, english = words[3][1], words[3][2]
+        elif period_type == "E":
+            chinese, english = words[4][1], words[4][2]
+        elif period_type == "NA":
+            chinese, english = words[5][1], words[5][2]
+        else:
+            print("type not found")
+            logging.error("type not found")
         return chinese, english
 
     def pre_order_button_handler(self, driver, button_path, mode):
@@ -90,12 +101,15 @@ class Preorder():
                 try:
                     driver.find_element(By.XPATH,button_path).click()
                 except ElementNotInteractableException:
+                    logging.error("ElementNotInteractableException")
                     print("ElementNotInteractableException")
                     return False
                 except NoSuchElementException:
+                    logging.error("NoSuchElementException")
                     print("NoSuchElementException")
                     return False
             else:
+                logging.error("fall into else, cannot locate button")
                 pass
         elif mode == "close":
             if accept_button_status == True or accept_button_status == "true":
@@ -103,16 +117,18 @@ class Preorder():
                 try:
                     driver.find_element(By.XPATH,button_path).click()
                 except ElementNotInteractableException:
+                    logging.error("ElementNotInteractableException")
                     print("ElementNotInteractableException")
                     return False
                 except NoSuchElementException:
+                    logging.error("NoSuchElementException")
                     print("NoSuchElementException")
                     return False              
             elif accept_button_status == None:
                 print("pass clicking checkbox, already unchecked")
             else:
+                logging.error("fall into else, cannot locate button")
                 pass
-        
         return True
 
     def PreOrderCloseAction(self, process_list, driver):
@@ -129,7 +145,6 @@ class Preorder():
                 if self.pre_order_button_handler(driver,xpath,"close") is False:
                     driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
                     self.pre_order_button_handler(driver,xpath,"close")
-
             else:
                 driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a').click()
                 print("Go to Variations Tab")
