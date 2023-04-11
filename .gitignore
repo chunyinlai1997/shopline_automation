@@ -2,5 +2,7 @@ __pycache__/
 data/inventory
 data/updates
 data/export
-test.ipynb
+*.ipynb
 log/
+test/
+search/exclude.xls
