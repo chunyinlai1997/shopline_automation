@@ -2,6 +2,7 @@ import preorder
 import logging
 import os
 from datetime import datetime
+import pandas as pd
 
 def close_preorder():
     pbot = preorder.Preorder()
@@ -19,6 +20,20 @@ def find_missing():
     pbot = preorder.Preorder()
     pbot.FindMissingPreOrderOpen()
 
+def create_exclude_excel_file():
+    # Check if the file already exists
+    if os.path.exists('search/exclude.xls'):
+        print("Exclude keyword file already exists, please update your exclude keywords in search/exclude.xls")
+    else:
+        # Create an empty dataframe with one column
+        df = pd.DataFrame(columns=["Keywords or Product Name"])
+        
+        # Save the dataframe as an Excel file
+        df.to_excel("search/exclude.xls", index=False)
+        
+        print("Exclude keyword created successfully! Please update your exclude keywords in search/exclude.xls")
+
+
 # Create the log folder if it doesn't exist
 if not os.path.exists('log'):
     os.makedirs('log')
@@ -28,8 +43,11 @@ now = datetime.now()
 log_file = f'log/{now.strftime("%Y-%m-%d_%H-%M-%S")}.log'
 logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 
+print("welcome to Shopline Automation Tool")
+print("===================")
+print("Initializing...")
+create_exclude_excel_file()
 
-print("Shopline Automation Tool")
 while True:
     print("===================")
     print("Select an option:")
