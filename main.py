@@ -58,7 +58,15 @@ while True:
     print("5. Quit")
 
     choice = input("Enter your choice (1-5): ")
-    if choice == '1':
+    if choice == 'daily':
+        logging.info("Execute all daily routine")
+        print("daily rountine: close pre-order, open pre-order")
+        close_preorder()
+        print("Pre-order closed successfully")
+        open_preorder()
+        logging.info('All pre-order opened successfully')
+        logging.info("All daily routine completed successfully")
+    elif choice == '1':
         logging.info("Execute close all Pre-order")
         close_preorder()
         logging.info('All pre-order closed successfully')
