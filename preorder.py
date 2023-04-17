@@ -86,6 +86,7 @@ class Preorder():
         else:
             print("type not found")
             logging.error("type not found")
+        print("TEST, ", period_type, chinese, english)
         return chinese, english
 
     def pre_order_button_handler(self, driver, button_path, mode):
