@@ -51,6 +51,7 @@ create_exclude_excel_file()
 while True:
     print("===================")
     print("Select an option:")
+    print("daily: run all daily routines")
     print("1. Close all Pre-order")
     print("2. Open all Pre-order")
     print("3. Close Pre-order by keyword")
