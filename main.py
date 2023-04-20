@@ -58,7 +58,7 @@ while True:
     print("4. Find Missing Pre-order by keyword")
     print("5. Quit")
 
-    choice = input("Enter your choice (1-5): ")
+    choice = input("Enter your choice (daily, 1-5): ")
     if choice == 'daily':
         logging.info("Execute all daily routine")
         print("daily rountine: close pre-order, open pre-order")
