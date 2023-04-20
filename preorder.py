@@ -89,7 +89,17 @@ class Preorder():
         return chinese, english
 
     def pre_order_button_handler(self, driver, button_path, mode):
-        accept_button = driver.find_element(By.XPATH, button_path)
+        print("Clicking button or checkbox...")
+        button_found = False
+        while button_found is False:
+            try:
+                accept_button = driver.find_element(By.XPATH, button_path)
+                button_found = True
+            except NoSuchElementException:
+                logging.error("NoSuchElementException")
+                print("NoSuchElementException")
+                button_found = False
+
         accept_button_status = accept_button.get_attribute('checked')
         print("Checkbox Status is ",accept_button_status)
 
@@ -141,7 +151,7 @@ class Preorder():
             if has_varient is False:
                 driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
                 print("Go to Price and Quantity Tab")
-                xpath = '//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input'
+                xpath = '//*[@id="productForm-pricing"]/div/div[4]/div[2]/div[1]/div/div[2]/div/div[2]/label/input'
                 if self.pre_order_button_handler(driver,xpath,"close") is False:
                     driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
                     self.pre_order_button_handler(driver,xpath,"close")
@@ -219,7 +229,7 @@ class Preorder():
             if has_varient is False:
                 driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
                 print("Go to Price and Quantity Tab")
-                xpath = '//*[@id="productForm-pricing"]/div/div[3]/div[2]/div[1]/div/div[2]/div/div[2]/label/input'
+                xpath = '//*[@id="productForm-pricing"]/div/div[4]/div[2]/div[1]/div/div[2]/div/div[2]/label/input'
                 self.pre_order_button_handler(driver,xpath,"open")
                 if self.pre_order_button_handler(driver,xpath,"open") is False:
                     driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()

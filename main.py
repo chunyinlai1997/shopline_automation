@@ -51,13 +51,14 @@ create_exclude_excel_file()
 while True:
     print("===================")
     print("Select an option:")
+    print("daily: run all daily routines")
     print("1. Close all Pre-order")
     print("2. Open all Pre-order")
     print("3. Close Pre-order by keyword")
     print("4. Find Missing Pre-order by keyword")
     print("5. Quit")
 
-    choice = input("Enter your choice (1-5): ")
+    choice = input("Enter your choice (daily, 1-5): ")
     if choice == 'daily':
         logging.info("Execute all daily routine")
         print("daily rountine: close pre-order, open pre-order")
