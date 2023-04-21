@@ -151,7 +151,7 @@ class Preorder():
             if has_varient is False:
                 driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
                 print("Go to Price and Quantity Tab")
-                xpath = '//*[@id="productForm-pricing"]/div/div[4]/div[2]/div[1]/div/div[2]/div/div[2]/label/input'
+                xpath = '//input[@name="product_out_of_stock_orderable"]'
                 if self.pre_order_button_handler(driver,xpath,"close") is False:
                     driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
                     self.pre_order_button_handler(driver,xpath,"close")
@@ -229,7 +229,7 @@ class Preorder():
             if has_varient is False:
                 driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
                 print("Go to Price and Quantity Tab")
-                xpath = '//*[@id="productForm-pricing"]/div/div[4]/div[2]/div[1]/div/div[2]/div/div[2]/label/input'
+                xpath = '//input[@name="product_out_of_stock_orderable"]'
                 self.pre_order_button_handler(driver,xpath,"open")
                 if self.pre_order_button_handler(driver,xpath,"open") is False:
                     driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a').click()
