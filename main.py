@@ -20,6 +20,10 @@ def find_missing():
     pbot = preorder.Preorder()
     pbot.FindMissingPreOrderOpen()
 
+def description_force_update():
+    pbot = preorder.Preorder()
+    pbot.PreOrderDescriptionForceUpdate()
+
 def create_exclude_excel_file():
     # Check if the file already exists
     if os.path.exists('search/exclude.xls'):
@@ -52,14 +56,15 @@ while True:
     print("===================")
     print("Select an option:")
     print("daily: run all daily routines")
-    print("1. Close all Pre-order")
-    print("2. Open all Pre-order")
-    print("3. Close Pre-order by keyword")
-    print("4. Find Missing Pre-order by keyword")
-    print("5. Quit")
+    print("1: Close all Pre-order")
+    print("2: Open all Pre-order")
+    print("3: Close Pre-order by keyword")
+    print("4: Find Missing Pre-order by keyword")
+    print("5: Pre-order Description Force Update")
+    print("quit: Quit")
 
-    choice = input("Enter your choice (daily, 1-5): ")
-    if choice == 'daily':
+    choice = input("Enter your choice: ")
+    if choice.lower() == 'daily':
         logging.info("Execute all daily routine")
         print("daily rountine: close pre-order, open pre-order")
         close_preorder()
@@ -86,6 +91,10 @@ while True:
         find_missing()
         logging.info("Find missing pre-order by keyword successfully")
     elif choice == '5':
+        logging.info("Execute pre-order Description force update")
+        description_force_update()
+        logging.info("Pre-order Description force updated successfully")
+    elif choice.lower() == 'quit':
         print("Thank you for using Shopline Automation Tool, bye!")
         logging.info('Script completed successfully')
         break
