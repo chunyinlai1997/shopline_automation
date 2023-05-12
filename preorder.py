@@ -337,7 +337,10 @@ class Preorder():
             html_response = driver.find_element(By.XPATH, '/html/body/pre').text
             json_data = json.loads(html_response)
 
-            product_items = json_data['data']['items']
+            if 'data' in json_data and 'items' in json_data['data']:
+                product_items = json_data['data']['items']
+            else:
+                product_items = []
 
             for item in product_items:
                 quantity = item['quantity']
