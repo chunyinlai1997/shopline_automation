@@ -326,7 +326,7 @@ class Preorder():
 
         print("Your exclude list:")
         print(exclude_list)
-        print("You may edit under 'search/namelist.xls'")
+        print("You may edit under 'search/' folder")
         print("items found: ")
         
         time.sleep(3)
@@ -350,12 +350,11 @@ class Preorder():
                     has_varient = True
 
                 not_dis = False
-
                 if item['tags_array'] is None:
                     not_dis = True
-                elif 'dis' not in item['tags_array'] or 'dis' not in item['sku']:
+                elif item['sku'] is None or 'dis' not in item['tags_array'] or 'dis' not in item['sku']:
                     not_dis = True
-                
+        
                 if not_dis == True and chinese_name not in exclude_list:
                     if quantity <= 0 and not is_preorder and status == "active":
                         process_list.append([sku_id, has_varient, search_for[key]])
