@@ -326,7 +326,7 @@ class Preorder():
 
         print("Your exclude list:")
         print(exclude_list)
-        print("You may edit under 'search/' folder")
+        print("You can edit the exclude list under 'search/' folder")
         print("items found: ")
         
         time.sleep(3)
@@ -360,7 +360,9 @@ class Preorder():
         
                 if not_dis == True and chinese_name not in exclude_list:
                     if quantity <= 0 and not is_preorder and status == "active":
-                        process_list.append([sku_id, has_varient, search_for[key]])
+                        is_duplicate = any(item[0] == sku_id for item in process_list)
+                        if not is_duplicate:
+                            process_list.append([sku_id, has_varient, search_for[key]])
 
         print("Collected data....")
         print("Process items: ")
@@ -495,7 +497,9 @@ class Preorder():
                 has_varient = True
             
             if keyword in chinese_name:
-                process_list.append([sku_id, has_varient, key_period])
+                is_duplicate = any(item[0] == sku_id for item in process_list)
+                if not is_duplicate:
+                    process_list.append([sku_id, has_varient, key_period])
 
         print("Collected data....")
         print("Process items: ")
