@@ -323,9 +323,9 @@ class Preorder():
 
         exclude_list = self.xls_to_list('search/exclude.xls')
         exclude_list.pop(0)
-
+        exclude_list_items = [item for sublist in exclude_list for item in sublist]
         print("Your exclude list:")
-        print(exclude_list)
+        print(exclude_list_items)
         print("You can edit the exclude list under 'search/' folder")
         print("items found: ")
         
@@ -357,12 +357,15 @@ class Preorder():
                     not_dis = True
                 elif item['sku'] is None or 'dis' not in item['tags_array'] or 'dis' not in item['sku']:
                     not_dis = True
-        
-                if not_dis == True and chinese_name not in exclude_list:
+
+                if not_dis == True:
                     if quantity <= 0 and not is_preorder and status == "active":
                         is_duplicate = any(item[0] == sku_id for item in process_list)
                         if not is_duplicate:
-                            process_list.append([sku_id, has_varient, search_for[key]])
+                            not_in_exclude_list = all(chinese_name not in item for item in exclude_list)
+                            if not_in_exclude_list:
+                                print(chinese_name)
+                                process_list.append([sku_id, has_varient, search_for[key]])
 
         print("Collected data....")
         print("Process items: ")
