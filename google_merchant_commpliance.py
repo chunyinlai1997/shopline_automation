@@ -8,6 +8,8 @@ import json
 import time
 import csv
 import logging
+import os
+import datetime
 
 class Google_Category_Clicker():
 
@@ -133,8 +135,8 @@ class Google_Category_Clicker():
         json_data = json.loads(html_response)
         return True
 
-    def UpdateGoogleCategorySexToy(self, process_list):
-        num_processes = 1
+    def UpdateGoogleCategory(self, process_list):
+        num_processes = 10
         # Split process_list into smaller chunks for each process
         chunk_size = len(process_list) // num_processes
         process_chunks = [process_list[i:i + chunk_size] for i in range(0, len(process_list), chunk_size)]
@@ -151,6 +153,8 @@ class Google_Category_Clicker():
         # Wait for all processes to finish
         for process in processes:
             process.join()
+        
+        print("All subprocesses completed, end of work.")
         
     def process_chunk(self, sub_process_list):
         print("Processing chuck items:", len(sub_process_list))
@@ -188,7 +192,14 @@ class Google_Category_Clicker():
         print("Process Chuck Completed") 
 
 if __name__ == "__main__":
+    # Create the log folder if it doesn't exist
+    if not os.path.exists('log'):
+        os.makedirs('log')
+    now = datetime.now()
+    log_file = f'log/google_category_update_{now.strftime("%Y-%m-%d_%H-%M-%S")}.log'
+    logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+
     multiprocessing.freeze_support()
     google_category_clicks = Google_Category_Clicker()
     item_list = google_category_clicks.csv_to_list('issue_google_product_sets.csv')
-    google_category_clicks.UpdateGoogleCategorySexToy(item_list)
+    google_category_clicks.UpdateGoogleCategory(item_list)
