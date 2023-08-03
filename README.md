@@ -1,9 +1,14 @@
-# Waddy Store Shopline Automation
+# Shopline Automation Tool
 
 Author: Willon Lai
 
+Version: 2.0
+
+Last Update: 3/8/2023
+
 - Functions
   1. Automotaion in handling pre-order
+  2. Update Google Category
 
 Prerequisite:
 
@@ -21,7 +26,9 @@ git pull
 Run the code:
 
 ```
-python run.py
+python preorder_runner.py
+python google_merchant_compliance.py
+
 ```
 
 Prepare for the Browser (recommend using Chrome)
