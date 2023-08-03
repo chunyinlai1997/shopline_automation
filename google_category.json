@@ -1,0 +1,29 @@
+{
+    "string:mature": {
+      "erotic_items": [
+        "string:sex_toys",
+        "string:sex_books",
+        "string:erotic_clothing",
+        "string:erotic_food_edibles",
+        "string:erotic_games"
+      ]
+    },
+    "string:health_beauty": {
+      "string:health_care": [
+        "string:condoms",
+        "string:medical_tests",
+        "string:medicine_drugs",
+        "string:fitness_nutrition"
+      ],
+      "string:personal_care": [
+        "string:cosmetics",
+        "string:deodorant_anti_perspirant",
+        "string:enema_kits_supplies",
+        "string:feminine_sanitary_supplies",
+        "string:hair_care",
+        "string:massage_relaxation",
+        "string:personal_lubricants",
+        "string:shaving_grooming"
+      ]
+    }
+  }
