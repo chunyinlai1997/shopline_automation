@@ -101,7 +101,7 @@ class Google_Category_Clicker():
                 print("NoSuchElementException")
                 tab_found = False
 
-    def handle_product_dropdowns(driver, google_product_category, google_feed_options, google_feed_3rdlayer_options):
+    def product_dropdown_handler(driver, google_product_category, google_feed_options, google_feed_3rdlayer_options):
         print("Google Category:", google_product_category, google_feed_options, google_feed_3rdlayer_options)
         
         def select_option_by_value(element, value):
