@@ -3,13 +3,13 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
+from datetime import datetime
 import multiprocessing
 import json
 import time
 import csv
 import logging
 import os
-import datetime
 
 class Google_Category_Clicker():
 
@@ -135,8 +135,7 @@ class Google_Category_Clicker():
         json_data = json.loads(html_response)
         return True
 
-    def UpdateGoogleCategory(self, process_list):
-        num_processes = 10
+    def UpdateGoogleCategory(self, process_list, num_processes):
         # Split process_list into smaller chunks for each process
         chunk_size = len(process_list) // num_processes
         process_chunks = [process_list[i:i + chunk_size] for i in range(0, len(process_list), chunk_size)]
@@ -167,8 +166,9 @@ class Google_Category_Clicker():
             print("Now Processing:", sku_id)
             driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
             driver.implicitly_wait(5)
-            try: 
+            try:
                 button_xpath = '/html/body/div[3]/div[2]/div[1]/div[1]/div/div[2]/form/div[1]/div[1]/div/span[2]/button'
+
                 product_save_button = driver.find_element(By.XPATH, button_xpath) 
                 print("Go to Product Feed Data Tab")
                 self.product_feed_data_button_handler(driver)
@@ -179,6 +179,10 @@ class Google_Category_Clicker():
                 print("Saved changes, completed")
             except NoSuchElementException or StaleElementReferenceException:
                 print("Switch to Product Set")
+                #driver.get("https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products/"+sku_id+"?filters%5B%5D=related_products_all&force_with_product_set=true&includes%5B%5D=retail_price&with_flash_price_campaign=true")
+                #html_response = driver.find_element(By.XPATH, '/html/body/pre').text
+                #json_data = json.loads(html_response)
+                #google_3rd_layer_option_id = json_data['data']['feed_category']['google_3rd_layer_option_id']
                 driver.get("https://admin.shoplineapp.com/admin/waddystore/product_sets/"+sku_id+"/edit")
                 driver.implicitly_wait(5)
                 print("Go to Product Set Feed Data Tab")
@@ -201,5 +205,6 @@ if __name__ == "__main__":
 
     multiprocessing.freeze_support()
     google_category_clicks = Google_Category_Clicker()
-    item_list = google_category_clicks.csv_to_list('issue_google_product_sets.csv')
-    google_category_clicks.UpdateGoogleCategory(item_list)
+    item_list = google_category_clicks.csv_to_list('issue_google_products.csv')
+    num_processes = eval(input("How many number of processes required? (Input in number): "))
+    google_category_clicks.UpdateGoogleCategory(item_list, num_processes)

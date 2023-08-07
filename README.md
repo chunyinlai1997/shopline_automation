@@ -35,7 +35,7 @@ Prepare for the Browser (recommend using Chrome)
 
 * Using Google Chrome in Ubuntu on Windows Subsystem Linux
 
-Download and install Chrome:
+Download and install Chrome (Linux):
 
 ```
 sudo apt update && sudo apt -y upgrade && sudo apt -y autoremove
@@ -71,5 +71,5 @@ You can add parameter:
 
 `limit=1000` is used for the no. of items showing in the result
 
-All right reserved, copyright @WillonLai ;)
+All right reserved, copyright @WillonLai :D
 Email: prologic338@gmail.com
