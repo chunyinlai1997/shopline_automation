@@ -101,39 +101,37 @@ class Google_Category_Clicker():
                 print("NoSuchElementException")
                 tab_found = False
 
-    def product_dropdown_handler(self, driver, google_product_category, google_feed_options, google_feed_3rdlayer_options):
+    def handle_product_dropdowns(driver, google_product_category, google_feed_options, google_feed_3rdlayer_options):
         print("Google Category:", google_product_category, google_feed_options, google_feed_3rdlayer_options)
-        #agegroup
+        
+        def select_option_by_value(element, value):
+            slected = False
+            counter = 0
+            while not slected or counter>5:
+                try:
+                    dropdown = Select(element)
+                    dropdown.select_by_value(value)
+                    slected = True
+                    time.sleep(0.5)
+                except NoSuchElementException or StaleElementReferenceException:
+                    counter += 1
+                    logging.debug("unable to select")
+        
         dropdown_element_agegroup = driver.find_element(By.XPATH, "/html/body/div[3]/div[2]/div[1]/div[1]/div/div[2]/form/div[1]/div[3]/div/product-form-feed/div[4]/div[2]/div[1]/div[2]/div/select")
-        dropdown_agegroup = Select(dropdown_element_agegroup)
-        dropdown_agegroup.select_by_value("string:adult")
-
-        #adult
+        select_option_by_value(dropdown_element_agegroup, "string:adult")
+        
         dropdown_element_adult = driver.find_element(By.XPATH, "/html/body/div[3]/div[2]/div[1]/div[1]/div/div[2]/form/div[1]/div[3]/div/product-form-feed/div[4]/div[2]/div[1]/div[3]/div/select")
-        dropdown_adult = Select(dropdown_element_adult)
-        dropdown_adult.select_by_value("string:yes")
-
-        #google_product_category
+        select_option_by_value(dropdown_element_adult, "string:yes")
+        
         dropdown_element_google_product_category = driver.find_element(By.ID, "google_feed_categories")
-        dropdown_google_product_category = Select(dropdown_element_google_product_category)
-        dropdown_google_product_category.select_by_value(google_product_category)
-
-        #google_feed_options
+        select_option_by_value(dropdown_element_google_product_category, google_product_category)
+        
         dropdown_element_google_feed_options = driver.find_element(By.ID, "google_feed_options")
-        dropdown_google_feed_options = Select(dropdown_element_google_feed_options)
-        dropdown_google_feed_options.select_by_value(google_feed_options)
-
-        #google_feed_3rdlayer_options
+        select_option_by_value(dropdown_element_google_feed_options, google_feed_options)
+        
         dropdown_element_google_feed_3rdlayer_options = driver.find_element(By.ID, "google_feed_3rdlayer_options")
-        dropdown_google_feed_3rdlayer_options = Select(dropdown_element_google_feed_3rdlayer_options)
-        dropdown_google_feed_3rdlayer_options.select_by_value(google_feed_3rdlayer_options)
-        time.sleep(1)
+        select_option_by_value(dropdown_element_google_feed_3rdlayer_options, google_feed_3rdlayer_options)
 
-    def product_data(self, sku_id, driver):
-        driver.get('https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products/'+ sku_id)
-        html_response = driver.find_element(By.XPATH, '/html/body/pre').text
-        json_data = json.loads(html_response)
-        return True
 
     def UpdateGoogleCategory(self, process_list, num_processes):
         # Split process_list into smaller chunks for each process
@@ -162,58 +160,86 @@ class Google_Category_Clicker():
         self.shopline_login(driver)
 
         for sku_id, cat1, cat2, cat3 in sub_process_list:
-            time.sleep(2)
+            time.sleep(1)
             print("Now Processing:", sku_id)
             driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
-            driver.implicitly_wait(2)
             try:
                 button_xpath = '/html/body/div[3]/div[2]/div[1]/div[1]/div/div[2]/form/div[1]/div[1]/div/span[2]/button'
                 product_save_button = driver.find_element(By.XPATH, button_xpath) 
-
                 driver.get("https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products/"+sku_id)
                 scrawled_category = False
                 while not scrawled_category:
                     html_response = driver.find_element(By.XPATH, '/html/body/pre').text
                     json_data = json.loads(html_response)
-                    google_3rd_layer_option_id = json_data['data']['feed_category']['google_3rd_layer_option_id']
-                    if google_3rd_layer_option_id is None:
-                        logging.warning("unable to crawl the google_3rd_layer_option_id")
-                    else:
-                        scrawled_category = True         
-                print(google_3rd_layer_option_id)
+                    try:
+                        google_3rd_layer_option_id = json_data['data']['feed_category']['google_3rd_layer_option_id']
+                        if google_3rd_layer_option_id is None:
+                            logging.debug(sku_id + "unable to crawl the google_3rd_layer_option_id")
+                        else:
+                            scrawled_category = True   
+                    except TypeError or AttributeError:
+                        google_3rd_layer_option_id = "empty"
+                        scrawled_category = True
+                         
+                print(sku_id + "is in " + google_3rd_layer_option_id)
+
                 if "string:"+google_3rd_layer_option_id == cat3:
                     print(sku_id + " already in correct category")
-                    pass
                 else: 
+                    driver.implicitly_wait(1)
                     driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
                     print("Go to Product Feed Data Tab")
                     self.product_feed_data_button_handler(driver)
                     print("Change Dropdown Element Values")
                     self.product_dropdown_handler(driver, cat1, cat2, cat3)
                     #Save after changes
-                    product_save_button.click()
-                    print("Saved changes, completed")
+                    try:    
+                        product_save_button = driver.find_element(By.XPATH, button_xpath) 
+                        product_save_button.click()
+                        print(sku_id + "Saved changes, completed")
+                    except NoSuchElementException or StaleElementReferenceException:
+                        message = sku_id = " completed but unable to save!"
+                        print(message)
+                        logging.error(message)
+
             except NoSuchElementException or StaleElementReferenceException:
                 print("Switch to Product Set")
                 driver.get("https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products/"+sku_id+"?filters%5B%5D=related_products_all&force_with_product_set=true&includes%5B%5D=retail_price&with_flash_price_campaign=true")
-                html_response = driver.find_element(By.XPATH, '/html/body/pre').text
-                json_data = json.loads(html_response)
-                google_3rd_layer_option_id = json_data['data']['feed_category']['google_3rd_layer_option_id']
-                print(google_3rd_layer_option_id)
+                scrawled_category = False
+                while not scrawled_category:
+                    html_response = driver.find_element(By.XPATH, '/html/body/pre').text
+                    json_data = json.loads(html_response)
+                    try:
+                        google_3rd_layer_option_id = json_data['data']['feed_category']['google_3rd_layer_option_id']
+                        if google_3rd_layer_option_id is None:
+                            logging.warning(sku_id + "unable to crawl the google_3rd_layer_option_id")
+                        else:
+                            scrawled_category = True   
+                    except TypeError or AttributeError:
+                        google_3rd_layer_option_id = "empty"
+                        scrawled_category = True
+                
+                print(sku_id + "is in " + google_3rd_layer_option_id)
+
                 if "string:"+google_3rd_layer_option_id == cat3:
                     print(sku_id + " already in correct category")
-                    pass
                 else:
                     driver.get("https://admin.shoplineapp.com/admin/waddystore/product_sets/"+sku_id+"/edit")
-                    driver.implicitly_wait(5)
+                    driver.implicitly_wait(3)
                     print("Go to Product Set Feed Data Tab")
                     self.product_set_feed_data_button_handler(driver)
                     print("Change Dropdown Element Values")
                     self.product_dropdown_handler(driver, cat1, cat2, cat3)
                     #Save after changes
                     button_xpath = '/html/body/div[3]/div[2]/div[1]/div[1]/div/div[2]/form/div[1]/div[1]/div/span[2]/button'
-                    driver.find_element(By.XPATH, button_xpath).click()
-                    print("Saved changes, completed")     
+                    try:    
+                        product_save_button = driver.find_element(By.XPATH, button_xpath) 
+                        product_save_button.click()
+                        print(sku_id + "Saved changes, completed")
+                    except NoSuchElementException or StaleElementReferenceException:
+                        message = sku_id = " completed but unable to save!"
+                        print(message)
+                        logging.error(message)  
         print("Process Chuck Completed") 
 
 if __name__ == "__main__":
