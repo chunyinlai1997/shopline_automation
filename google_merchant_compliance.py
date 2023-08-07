@@ -16,6 +16,47 @@ class Google_Category_Clicker():
     def __init__(self) -> None:
         pass
 
+    def update_progress_csv(self, sku_id):
+        # Define the folder and file paths
+        folder_path = "log/progress"
+        file_path = os.path.join(folder_path, "google_category_progress.csv")
+
+        # Create the folder if it doesn't exist
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        # Check if the CSV file exists or needs to be created
+        file_exists = os.path.exists(file_path)
+
+        # Open the CSV file in append mode
+        with open(file_path, mode="a", newline="") as csvfile:
+            fieldnames = ["sku_id"]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+            # Write the header if the file is newly created
+            if not file_exists:
+                writer.writeheader()
+
+            # Write the SKU ID to the CSV file
+            writer.writerow({"sku_id": sku_id})
+
+    def extract_progress_csv(self):
+        sku_list = []
+
+        # Define the folder and file paths
+        folder_path = "log/progress"
+        file_path = os.path.join(folder_path, "google_category_progress.csv")
+
+        # Check if the CSV file exists
+        if os.path.exists(file_path):
+            # Open the CSV file in read mode
+            with open(file_path, mode="r") as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    sku_list.append(row["sku_id"])
+        
+        return sku_list
+
     def shopline_login(self, driver):
         username = "info@waddystore.com"
         password = "Waddy1208"
@@ -50,8 +91,7 @@ class Google_Category_Clicker():
             
             # Wait for the new page to load
             wait.until(EC.staleness_of(driver.find_element_by_tag_name('html')))
-    
-    
+     
     def csv_to_list(self, sourcefile):
         # Initialize an empty list to store the extracted values
         extracted_values = []
@@ -105,13 +145,13 @@ class Google_Category_Clicker():
         print("Google Category:", google_product_category, google_feed_options, google_feed_3rdlayer_options)
         
         def select_option_by_value(element, value):
-            slected = False
+            selected = False
             counter = 0
-            while not slected or counter>5:
+            while not selected or counter>5:
                 try:
                     dropdown = Select(element)
                     dropdown.select_by_value(value)
-                    slected = True
+                    selected = True
                     time.sleep(0.5)
                 except NoSuchElementException or StaleElementReferenceException:
                     counter += 1
@@ -134,6 +174,13 @@ class Google_Category_Clicker():
 
 
     def UpdateGoogleCategory(self, process_list, num_processes):
+        # Filter already completed items
+        completed_items = self.extract_progress_csv()
+        
+        skus_to_remove = set(completed_items)
+        process_list = [item for item in process_list if item[0] not in skus_to_remove]
+        
+        print("Found chuck items after filtering completed items: ", len(process_list))
         # Split process_list into smaller chunks for each process
         chunk_size = len(process_list) // num_processes
         process_chunks = [process_list[i:i + chunk_size] for i in range(0, len(process_list), chunk_size)]
@@ -184,7 +231,8 @@ class Google_Category_Clicker():
                 print(sku_id + "is in " + google_3rd_layer_option_id)
 
                 if "string:"+google_3rd_layer_option_id == cat3:
-                    print(sku_id + " already in correct category")
+                    print(sku_id + " already in correct category, skip.")
+                    self.update_progress_csv(sku_id)
                 else: 
                     driver.implicitly_wait(1)
                     driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
@@ -197,6 +245,7 @@ class Google_Category_Clicker():
                         product_save_button = driver.find_element(By.XPATH, button_xpath) 
                         product_save_button.click()
                         print(sku_id + "Saved changes, completed")
+                        self.update_progress_csv(sku_id)
                     except NoSuchElementException or StaleElementReferenceException:
                         message = sku_id = " completed but unable to save!"
                         print(message)
@@ -222,7 +271,8 @@ class Google_Category_Clicker():
                 print(sku_id + "is in " + google_3rd_layer_option_id)
 
                 if "string:"+google_3rd_layer_option_id == cat3:
-                    print(sku_id + " already in correct category")
+                    print(sku_id + " already in correct category, skip.")
+                    self.update_progress_csv(sku_id)
                 else:
                     driver.get("https://admin.shoplineapp.com/admin/waddystore/product_sets/"+sku_id+"/edit")
                     driver.implicitly_wait(3)
@@ -236,6 +286,7 @@ class Google_Category_Clicker():
                         product_save_button = driver.find_element(By.XPATH, button_xpath) 
                         product_save_button.click()
                         print(sku_id + "Saved changes, completed")
+                        self.update_progress_csv(sku_id)
                     except NoSuchElementException or StaleElementReferenceException:
                         message = sku_id = " completed but unable to save!"
                         print(message)
@@ -253,5 +304,8 @@ if __name__ == "__main__":
     multiprocessing.freeze_support()
     google_category_clicks = Google_Category_Clicker()
     item_list = google_category_clicks.csv_to_list('issue_google_products.csv')
+    num_processes = eval(input("How many number of processes required? (Input in number): "))
+    google_category_clicks.UpdateGoogleCategory(item_list, num_processes)
+    item_list = google_category_clicks.csv_to_list('issue_google_product_sets.csv')
     num_processes = eval(input("How many number of processes required? (Input in number): "))
     google_category_clicks.UpdateGoogleCategory(item_list, num_processes)
