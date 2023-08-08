@@ -1,9 +1,14 @@
-# Waddy Store Shopline Automation
+# Shopline Automation Tool
 
 Author: Willon Lai
 
+Version: 2.0
+
+Last Update: 3/8/2023
+
 - Functions
   1. Automotaion in handling pre-order
+  2. Update Google Category
 
 Prerequisite:
 
@@ -21,14 +26,16 @@ git pull
 Run the code:
 
 ```
-python run.py
+python preorder_runner.py
+python google_merchant_compliance.py
+
 ```
 
 Prepare for the Browser (recommend using Chrome)
 
 * Using Google Chrome in Ubuntu on Windows Subsystem Linux
 
-Download and install Chrome:
+Download and install Chrome (Linux):
 
 ```
 sudo apt update && sudo apt -y upgrade && sudo apt -y autoremove
@@ -64,5 +71,5 @@ You can add parameter:
 
 `limit=1000` is used for the no. of items showing in the result
 
-All right reserved, copyright @WillonLai ;)
+All right reserved, copyright @WillonLai :D
 Email: prologic338@gmail.com
