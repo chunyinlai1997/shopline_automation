@@ -1,0 +1,6 @@
+# ... Other Dockerfile instructions ...
+
+# Copy the project files into the container
+COPY . /app
+
+# ... Rest of Dockerfile ...
