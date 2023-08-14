@@ -1,6 +1,8 @@
+Flask==2.0.1
+requests==2.26.0
 lxml==4.9.2
 pandas==1.5.3
-selenium
+selenium==4.8.0
 urllib3==1.26.12
 wcwidth==0.2.5
 webencodings==0.5.1

@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 from datetime import datetime
+import shopline_login_handler as ShoplineLogin
 import multiprocessing
 import json
 import time
@@ -14,7 +15,10 @@ import os
 class Google_Category_Clicker():
 
     def __init__(self) -> None:
-        pass
+        self.login_handler = ShoplineLogin.ShoplineLoginHandler()
+
+    def shopline_login(self, driver) -> None:
+        self.login_handler.shopline_login(driver)
 
     def update_progress_csv(self, sku_id):
         # Define the folder and file paths
@@ -57,41 +61,6 @@ class Google_Category_Clicker():
         
         return sku_list
 
-    def shopline_login(self, driver):
-        username = "info@waddystore.com"
-        password = "Waddy1208"
-        driver.get('https://admin.shoplineapp.com/admin/waddystore/')
-        driver.find_element(By.ID, "staff_email").send_keys(username)
-        driver.find_element(By.ID, "staff_password").send_keys(password)
-
-        wait = WebDriverWait(driver, 120)
-
-        while True:
-            try:
-                time.sleep(2)
-                submit_btn = driver.find_element(By.XPATH, '//*[@id="reg-submit-button"]')
-                submit_btn.click()
-            except:
-                logging.debug("Unable to logged in automatically, blocked by Captcha")
-                print("Unable to logged in automatically.")
-
-            # Check if the element is already loaded
-            try:
-                wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[3]/div[2]/div[1]/div[1]/div/react-app')))
-                print("Successfully logged in to Shopline.")
-                break
-            except:
-                pass
-            
-            # Ask the user if there is a captcha
-            human = input("Is there a captcha? If done, please type 'ok': ")
-            while human.lower() != "ok":
-                logging.debug("there is still blocking or captcha issue")
-                human = input("Please type 'ok' when done: ")
-            
-            # Wait for the new page to load
-            wait.until(EC.staleness_of(driver.find_element_by_tag_name('html')))
-     
     def csv_to_list(self, sourcefile):
         # Initialize an empty list to store the extracted values
         extracted_values = []
@@ -171,7 +140,6 @@ class Google_Category_Clicker():
         
         dropdown_element_google_feed_3rdlayer_options = driver.find_element(By.ID, "google_feed_3rdlayer_options")
         select_option_by_value(dropdown_element_google_feed_3rdlayer_options, google_feed_3rdlayer_options)
-
 
     def UpdateGoogleCategory(self, process_list, num_processes):
         # Filter already completed items
@@ -294,13 +262,6 @@ class Google_Category_Clicker():
         print("Process Chuck Completed") 
 
 if __name__ == "__main__":
-    # Create the log folder if it doesn't exist
-    if not os.path.exists('log'):
-        os.makedirs('log')
-    now = datetime.now()
-    log_file = f'log/google_category_update_{now.strftime("%Y-%m-%d_%H-%M-%S")}.log'
-    logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
-
     multiprocessing.freeze_support()
     google_category_clicks = Google_Category_Clicker()
     item_list = google_category_clicks.csv_to_list('issue_google_products.csv')

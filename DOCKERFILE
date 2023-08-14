@@ -1,0 +1,14 @@
+# Use an official Python runtime as the base image
+FROM python:3.8-slim-buster
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy all .py files from the project folder to the container
+COPY *.py /app/
+
+# Install any dependencies (if you have any)
+# RUN pip install your-dependencies
+
+# Specify the command to run when the container starts
+CMD ["python", "main.py"]

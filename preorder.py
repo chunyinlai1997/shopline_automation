@@ -4,6 +4,7 @@ from selenium.webdriver import Keys, ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException
+import shopline_login_handler as ShoplineLogin
 import json
 import time
 import xlrd
@@ -12,44 +13,12 @@ import logging
 class Preorder():
 
     def __init__(self) -> None:
-        pass
+        self.login_handler = ShoplineLogin.ShoplineLoginHandler()
 
-    def shopline_login(self, driver):
-        username = "info@waddystore.com"
-        password = "Waddy1208"
-        driver.get('https://admin.shoplineapp.com/admin/waddystore/')
-        driver.find_element(By.ID, "staff_email").send_keys(username)
-        driver.find_element(By.ID, "staff_password").send_keys(password)
+    def shopline_login(self, driver) -> None:
+        self.login_handler.shopline_login(driver)
 
-        wait = WebDriverWait(driver, 120)
-
-        while True:
-            try:
-                time.sleep(2)
-                submit_btn = driver.find_element(By.XPATH, '//*[@id="reg-submit-button"]')
-                submit_btn.click()
-            except:
-                logging.debug("Unable to logged in automatically, blocked by Captcha")
-                print("Unable to logged in automatically.")
-
-            # Check if the element is already loaded
-            try:
-                wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[3]/div[2]/div[1]/div[1]/div/react-app')))
-                print("Successfully logged in to Shopline.")
-                break
-            except:
-                pass
-            
-            # Ask the user if there is a captcha
-            human = input("Is there a captcha? If done, please type 'ok': ")
-            while human.lower() != "ok":
-                logging.debug("there is still blocking or captcha issue")
-                human = input("Please type 'ok' when done: ")
-            
-            # Wait for the new page to load
-            wait.until(EC.staleness_of(driver.find_element_by_tag_name('html')))
-        
-    def xls_to_list(self, path):
+    def xls_to_list(self, path) -> list:
         workbook = xlrd.open_workbook(path)
         worksheet = workbook.sheet_by_index(0)
         num_rows = worksheet.nrows
@@ -65,7 +34,7 @@ class Preorder():
 
         return data
     
-    def xpath_selector(self, key):
+    def xpath_selector(self, key) -> str:
         if key == "PriceQuantity":
             path = '//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a'
         elif key == "Variations":
@@ -74,30 +43,25 @@ class Preorder():
             path = '//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a'
         return path
     
-    def period_type_handler(self, period_type):
+    def period_type_handler(self, period_type) -> (str, str):
         words = self.xls_to_list('template/period_template.xls')
         words.pop(0)
-        chinese = ''
-        english = ''
+        
+        type_mapping = {
+            "A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "NA": 5
+        }
 
-        if period_type == "A":
-            chinese, english = words[0][1], words[0][2]
-        elif period_type == "B":
-            chinese, english = words[1][1], words[1][2]
-        elif period_type == "C":
-            chinese, english = words[2][1], words[2][2]
-        elif period_type == "D":
-            chinese, english = words[3][1], words[3][2]
-        elif period_type == "E":
-            chinese, english = words[4][1], words[4][2]
-        elif period_type == "NA":
-            chinese, english = words[5][1], words[5][2]
-        else:
-            print("type not found")
-            logging.error("type not found")
+        try:
+            index = type_mapping[period_type]
+            chinese, english = words[index][1], words[index][2]
+        except KeyError:
+            print("Type not found")
+            logging.error("Type not found")
+            raise ValueError("Type not found")
+
         return chinese, english
 
-    def pre_order_button_handler(self, driver, button_path, mode):
+    def pre_order_button_handler(self, driver, button_path, mode) -> bool:
         print("Clicking button or checkbox...")
         button_found = False
         while button_found is False:
@@ -150,10 +114,7 @@ class Preorder():
                 pass
         return True
 
-    def pre_order_msg_typer(self, driver, period_type, pre_order_switch):
-        pass
-
-    def PreOrderCloseAction(self, process_list, driver):
+    def pre_order_close_action(self, process_list, driver) -> None:
         for sku_id, has_varient in process_list:
             print("Now browsing to SKU: " + sku_id)
             driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
@@ -197,49 +158,7 @@ class Preorder():
             driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[1]/div/span[2]/button/span[2]').click()
             print("Saved changes, completed")
 
-    def PreOrderClose(self):
-        driver = webdriver.Chrome()
-        process_list = []
-
-        self.shopline_login(driver)
-        
-        time.sleep(5)
-
-        driver.get('https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products?page=1&offset=0&limit=1000&scope=preorder')
-        
-        time.sleep(5)
-
-        html_response = driver.find_element(By.XPATH, '/html/body/pre').text
-        json_data = json.loads(html_response)
-        print("Collected data....")
-
-        product_items = json_data['data']['items']
-        print("total items found: " + str(len(product_items)))
-        
-        for item in product_items:
-            quantity = item['quantity']
-            status = item['status']
-            is_preorder = item['is_preorder']
-            sku_id = item['id']
-            chinese_name = item['title_translations']['zh-hant']
-            has_varient = False
-            if len(item["variations"]) > 0:
-                has_varient = True
-
-            if int(quantity) > 0 and status == "active" and is_preorder == True:
-                print(chinese_name)
-                process_list.append([sku_id, has_varient])
-        
-        print("Process items: ")
-        print(process_list) 
-        logging.info("process_list as following")
-        logging.info(process_list)
-        print("total items to execute: " + str(len(process_list)))
-        self.PreOrderCloseAction(process_list, driver)
-
-        print("All Completed, End Task.")
-
-    def PreOrderOpenAction(self, process_list, driver, replace):
+    def pre_order_open_action(self, process_list, driver, replace) -> None:
         for sku_id, has_varient, period_type in process_list:
             print("Now browsing to SKU: " + sku_id)
             driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
@@ -311,7 +230,49 @@ class Preorder():
             driver.find_element(By.XPATH,'//*[@id="product_form"]/div[1]/div[1]/div/span[2]/button/span[2]').click()
             print("Saved changes, completed")
 
-    def PreOrderOpen(self):
+    def PreOrderClose(self) -> None:
+        driver = webdriver.Chrome()
+        process_list = []
+
+        self.shopline_login(driver)
+        
+        time.sleep(5)
+
+        driver.get('https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products?page=1&offset=0&limit=1000&scope=preorder')
+        
+        time.sleep(5)
+
+        html_response = driver.find_element(By.XPATH, '/html/body/pre').text
+        json_data = json.loads(html_response)
+        print("Collected data....")
+
+        product_items = json_data['data']['items']
+        print("total items found: " + str(len(product_items)))
+        
+        for item in product_items:
+            quantity = item['quantity']
+            status = item['status']
+            is_preorder = item['is_preorder']
+            sku_id = item['id']
+            chinese_name = item['title_translations']['zh-hant']
+            has_varient = False
+            if len(item["variations"]) > 0:
+                has_varient = True
+
+            if int(quantity) > 0 and status == "active" and is_preorder == True:
+                print(chinese_name)
+                process_list.append([sku_id, has_varient])
+        
+        print("Process items: ")
+        print(process_list) 
+        logging.info("process_list as following")
+        logging.info(process_list)
+        print("total items to execute: " + str(len(process_list)))
+        self.pre_order_close_action(process_list, driver)
+
+        print("All Completed, End Task.")
+
+    def PreOrderOpen(self) -> None:
         driver = webdriver.Chrome()
         process_list = []
 
@@ -374,11 +335,11 @@ class Preorder():
         logging.info(process_list)
         print("total items to execute: " + str(len(process_list)))
         replace = False
-        self.PreOrderOpenAction(process_list, driver, replace)
+        self.pre_order_open_action(process_list, driver, replace)
         
         print("All Completed, End Task.")
 
-    def PreOrderCloseKeywords(self):
+    def PreOrderCloseKeywords(self) -> None:
         print("Please wait for the data loaded...")
 
         driver = webdriver.Chrome()
@@ -415,10 +376,10 @@ class Preorder():
         logging.info("process_list as following")
         logging.info(process_list)
 
-        self.PreOrderCloseAction(process_list, driver)
+        self.pre_order_close_action(process_list, driver)
         print("Task Complete")
 
-    def FindMissingPreOrderOpen(self):
+    def FindMissingPreOrderOpen(self) -> None:
             driver = webdriver.Chrome()
             
             self.shopline_login(driver)
@@ -466,10 +427,10 @@ class Preorder():
             logging.info("process_list as following")
             logging.info(process_list)
             replace=False
-            self.PreOrderOpenAction(process_list, driver, replace)
+            self.pre_order_open_action(process_list, driver, replace)
             print("Task Complete")
 
-    def PreOrderDescriptionForceUpdate(self):
+    def PreOrderDescriptionForceUpdate(self) -> None:
         print("Please wait for the data loaded...")
 
         driver = webdriver.Chrome()
@@ -511,6 +472,6 @@ class Preorder():
         logging.info(process_list)
         print("total items to execute: " + str(len(process_list)))
         replace = True
-        self.PreOrderOpenAction(process_list, driver, replace)
+        self.pre_order_open_action(process_list, driver, replace)
 
         print("All Completed, End Task.")
