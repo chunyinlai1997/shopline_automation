@@ -262,13 +262,6 @@ class Google_Category_Clicker():
         print("Process Chuck Completed") 
 
 if __name__ == "__main__":
-    # Create the log folder if it doesn't exist
-    if not os.path.exists('log'):
-        os.makedirs('log')
-    now = datetime.now()
-    log_file = f'log/google_category_update_{now.strftime("%Y-%m-%d_%H-%M-%S")}.log'
-    logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
-
     multiprocessing.freeze_support()
     google_category_clicks = Google_Category_Clicker()
     item_list = google_category_clicks.csv_to_list('issue_google_products.csv')

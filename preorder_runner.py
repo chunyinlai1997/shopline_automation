@@ -40,16 +40,6 @@ def description_force_update():
     pbot.PreOrderDescriptionForceUpdate()
 
 def main():
-    log_directory = 'log'
-    exclude_file_path = 'search/exclude.xls'
-
-    if not os.path.exists(log_directory):
-        os.makedirs(log_directory)
-
-    now = datetime.now()
-    log_file = os.path.join(log_directory, f'{now.strftime("%Y-%m-%d_%H-%M-%S")}.log')
-    logging.basicConfig(filename=log_file, level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
-
     print("Welcome to Shopline Automation Tool")
     print("===================")
     print("Initializing...")
