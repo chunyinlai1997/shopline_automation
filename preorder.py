@@ -430,7 +430,7 @@ class Preorder():
             self.pre_order_open_action(process_list, driver, replace)
             print("Task Complete")
 
-    def PreOrderDescriptionForceUpdate(self):
+    def PreOrderDescriptionForceUpdate(self) -> None:
         print("Please wait for the data loaded...")
 
         driver = webdriver.Chrome()
