@@ -2,13 +2,13 @@
 
 Author: Willon Lai
 
-Version: 2.0
+Version: 2.1
 
-Last Update: 3/8/2023
+Last Update: 14/8/2023
 
 - Functions
-  1. Automotaion in handling pre-order
-  2. Update Google Category
+  1. Automotaion tool in handling pre-order settings
+  2. Update Google Merchant Product Category
 
 Prerequisite:
 
@@ -16,18 +16,17 @@ Prerequisite:
 * python (ver 3.9 or above)
 * git
 
-Run this command before go to jupyter notebook for running any aopplications.
+Run this command before running the code for setup, install the required libraries and pull the latest version.
 
 ```
-pip install -r requirements.txt   
 git pull
+pip install -r requirements.txt   
 ```
 
 Run the code:
 
 ```
-python preorder_runner.py
-python google_merchant_compliance.py
+python main.py
 
 ```
 
