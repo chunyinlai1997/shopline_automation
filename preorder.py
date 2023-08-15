@@ -12,9 +12,23 @@ import logging
 
 class Preorder():
 
-    def __init__(self) -> None:
+    def __init__(self, config_path='config.json') -> None:
         self.login_handler = ShoplineLogin.ShoplineLoginHandler()
+        self.config_path = config_path
 
+    def read_config(self) -> json:
+        with open(self.config_path, 'r') as config_file:
+            config = json.load(config_file)
+        return config
+    
+    def config_url(self) -> str:
+        config = self.read_config()
+        return config["login_url"]
+    
+    def api_url(self) -> str:
+        config = self.read_config()
+        return config["api_url"]
+    
     def shopline_login(self, driver) -> None:
         self.login_handler.shopline_login(driver)
 
@@ -117,7 +131,7 @@ class Preorder():
     def pre_order_close_action(self, process_list, driver) -> None:
         for sku_id, has_varient in process_list:
             print("Now browsing to SKU: " + sku_id)
-            driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
+            driver.get(self.config_url()+"products/"+sku_id+"/edit")
             driver.implicitly_wait(20)
             time.sleep(5)
 
@@ -161,7 +175,7 @@ class Preorder():
     def pre_order_open_action(self, process_list, driver, replace) -> None:
         for sku_id, has_varient, period_type in process_list:
             print("Now browsing to SKU: " + sku_id)
-            driver.get("https://admin.shoplineapp.com/admin/waddystore/products/"+sku_id+"/edit")
+            driver.get(self.config_url()+"products/"+sku_id+"/edit")
             driver.implicitly_wait(20)
 
             #Go to tab to turn on accept order option when out of stock
@@ -233,19 +247,13 @@ class Preorder():
     def PreOrderClose(self) -> None:
         driver = webdriver.Chrome()
         process_list = []
-
         self.shopline_login(driver)
-        
         time.sleep(5)
-
-        driver.get('https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products?page=1&offset=0&limit=1000&scope=preorder')
-        
+        driver.get(self.api_url() + 'products?page=1&offset=0&limit=1000&scope=preorder')       
         time.sleep(5)
-
         html_response = driver.find_element(By.XPATH, '/html/body/pre').text
         json_data = json.loads(html_response)
         print("Collected data....")
-
         product_items = json_data['data']['items']
         print("total items found: " + str(len(product_items)))
         
@@ -269,19 +277,15 @@ class Preorder():
         logging.info(process_list)
         print("total items to execute: " + str(len(process_list)))
         self.pre_order_close_action(process_list, driver)
-
         print("All Completed, End Task.")
 
     def PreOrderOpen(self) -> None:
         driver = webdriver.Chrome()
         process_list = []
-
         self.shopline_login(driver)
-
         data = self.xls_to_list('search/namelist.xls')
         data.pop(0)
         search_for = dict([[row[0], row[1]] for row in data])
-
         exclude_list = self.xls_to_list('search/exclude.xls')
         exclude_list.pop(0)
         exclude_list_items = [item for sublist in exclude_list for item in sublist]
@@ -289,12 +293,11 @@ class Preorder():
         print(exclude_list_items)
         print("You can edit the exclude list under 'search/' folder")
         print("items found: ")
-        
         time.sleep(3)
 
         for key in search_for.keys():
             time.sleep(0.5)
-            driver.get('https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products?page=1&offset=0&limit=10000&query='+ key +'&scope=search')
+            driver.get(self.api_url() + 'products?page=1&offset=0&limit=10000&query='+ key +'&scope=search')
             html_response = driver.find_element(By.XPATH, '/html/body/pre').text
             json_data = json.loads(html_response)
 
@@ -336,22 +339,16 @@ class Preorder():
         print("total items to execute: " + str(len(process_list)))
         replace = False
         self.pre_order_open_action(process_list, driver, replace)
-        
         print("All Completed, End Task.")
 
     def PreOrderCloseKeywords(self) -> None:
         print("Please wait for the data loaded...")
-
-        driver = webdriver.Chrome()
-        
+        driver = webdriver.Chrome()  
         self.shopline_login(driver)
-
         time.sleep(5)
-
-        driver.get('https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products?page=1&offset=0&limit=1000&scope=preorder')
+        driver.get(self.api_url() + 'products?page=1&offset=0&limit=1000&scope=preorder')
         html_response = driver.find_element(By.XPATH, '/html/body/pre').text
         json_data = json.loads(html_response)
-
         product_items = json_data['data']['items']
         print("total items found: " + str( len(product_items)))
         keyword = input("Please input the keywords or exact product Chinese name: ")
@@ -375,28 +372,21 @@ class Preorder():
         print("total items to execute: " + str(len(process_list)))
         logging.info("process_list as following")
         logging.info(process_list)
-
         self.pre_order_close_action(process_list, driver)
         print("Task Complete")
 
     def FindMissingPreOrderOpen(self) -> None:
             driver = webdriver.Chrome()
-            
             self.shopline_login(driver)
-
             time.sleep(5)
-
             keyword = input("Please input the keywords or exact product Chinese name: ")
-
-            driver.get('https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products?page=1&offset=0&limit=10000&query='+ keyword+'&scope=search')
+            driver.get(self.api_url() + 'products?page=1&offset=0&limit=10000&query=' + keyword+'&scope=search')
             html_response = driver.find_element(By.XPATH, '/html/body/pre').text
             json_data = json.loads(html_response)
-
             product_items = json_data['data']['items']
             print("total items found: " + str(len(product_items)))
             
             process_list = []
-
             data = self.xls_to_list('search/namelist.xls')
             data.pop(0)
             search_for = dict([[row[0], row[1]] for row in data])
@@ -432,19 +422,14 @@ class Preorder():
 
     def PreOrderDescriptionForceUpdate(self) -> None:
         print("Please wait for the data loaded...")
-
         driver = webdriver.Chrome()
-        
         self.shopline_login(driver)
-
         time.sleep(5)
-
-        driver.get('https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/products?page=1&offset=0&limit=1000&scope=preorder')
+        driver.get(self.api_url() + 'products?page=1&offset=0&limit=1000&scope=preorder')
         html_response = driver.find_element(By.XPATH, '/html/body/pre').text
         json_data = json.loads(html_response)
-
         product_items = json_data['data']['items']
-        print("total items found: " + str( len(product_items)))
+        print("total items found: " + str(len(product_items)))
         keyword = input("Please input the keywords or exact product Chinese name: ")
         logging.info('Submitted keyword: ' + keyword)
         key_period = input("Please input the period that you would like to update (A-E or NA): ")
@@ -473,5 +458,4 @@ class Preorder():
         print("total items to execute: " + str(len(process_list)))
         replace = True
         self.pre_order_open_action(process_list, driver, replace)
-
         print("All Completed, End Task.")
