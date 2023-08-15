@@ -8,15 +8,15 @@ import logging
 
 class ShoplineLoginHandler():
 
-    def __init__(self, config_path='config.json'):
+    def __init__(self, config_path='config.json') -> None:
         self.config_path = config_path
 
-    def read_config(self):
+    def read_config(self) -> json:
         with open(self.config_path, 'r') as config_file:
             config = json.load(config_file)
         return config
     
-    def shopline_login(self, driver):
+    def shopline_login(self, driver) -> None:
         config = self.read_config()
         username = config["username"]
         password = config["password"]
