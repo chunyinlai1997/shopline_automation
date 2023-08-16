@@ -1,5 +1,6 @@
-Flask==2.0.1
-requests==2.26.0
+flask>=2.2.5
+Werkzeug>=2.2.3
+requests>=2.31.0
 lxml==4.9.2
 pandas==1.5.3
 selenium==4.8.0
@@ -7,11 +8,8 @@ urllib3==1.26.12
 wcwidth==0.2.5
 webencodings==0.5.1
 websocket-client==1.3.3
-Werkzeug==2.2.2
 wrapt==1.14.1
 xlrd==2.0.
-requests==2.28.2
 google-api-python-client==2.78.0
 bs4==0.0.1
-selenium-recaptcha-solver==1.2.2
 xlwt==1.3.0

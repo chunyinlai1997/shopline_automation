@@ -23,9 +23,10 @@ git pull
 pip install -r requirements.txt   
 ```
 
-Run the code:
+Run the code in the app folder:
 
 ```
+cd app
 python main.py
 
 ```
