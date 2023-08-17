@@ -263,9 +263,9 @@ class Google_Category_Clicker():
 if __name__ == "__main__":
     multiprocessing.freeze_support()
     google_category_clicks = Google_Category_Clicker()
-    item_list = google_category_clicks.csv_to_list('issue_google_products.csv')
+    item_list = google_category_clicks.csv_to_list('data/google/issue_google_products.csv')
     num_processes = eval(input("How many number of processes required? (Input in number): "))
     google_category_clicks.UpdateGoogleCategory(item_list, num_processes)
-    item_list = google_category_clicks.csv_to_list('issue_google_product_sets.csv')
+    item_list = google_category_clicks.csv_to_list('data/google/issue_google_product_sets.csv')
     num_processes = eval(input("How many number of processes required? (Input in number): "))
     google_category_clicks.UpdateGoogleCategory(item_list, num_processes)
