@@ -1,9 +1,9 @@
-from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 import shopline_login_handler as ShoplineLogin
+import driver as Driver
 import multiprocessing
 import json
 import time
@@ -15,6 +15,7 @@ class Google_Category_Clicker():
 
     def __init__(self) -> None:
         self.login_handler = ShoplineLogin.ShoplineLoginHandler()
+        self.webdriver = Driver.WebDriver()
 
     def shopline_login(self, driver) -> None:
         self.login_handler.shopline_login(driver)
@@ -169,7 +170,7 @@ class Google_Category_Clicker():
         
     def process_chunk(self, sub_process_list):
         print("Processing chuck items:", len(sub_process_list))
-        driver = webdriver.Chrome()
+        driver = self.webdriver.get_driver()
 
         self.shopline_login(driver)
 

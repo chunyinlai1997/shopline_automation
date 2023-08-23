@@ -1,6 +1,5 @@
 import os
 import logging
-from datetime import datetime
 import pandas as pd
 import preorder as Prunner
 
@@ -40,7 +39,8 @@ def description_force_update():
     pbot.PreOrderDescriptionForceUpdate()
 
 def main():
-    print("Welcome to Shopline Automation Tool")
+    print("===================")
+    print("Welcome to Shopline Pre Order Automation Tool")
     print("===================")
     print("Initializing...")
     exclude_file_path = "search/exclude.xls"

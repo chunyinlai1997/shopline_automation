@@ -1,10 +1,8 @@
-from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver import Keys, ActionChains
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException
+from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException, ElementClickInterceptedException
 import shopline_login_handler as ShoplineLogin
+import driver as Driver
 import json
 import time
 import xlrd
@@ -15,6 +13,7 @@ class Preorder():
     def __init__(self, config_path='config.json') -> None:
         self.login_handler = ShoplineLogin.ShoplineLoginHandler()
         self.config_path = config_path
+        self.webdriver = Driver.WebDriver()
 
     def read_config(self) -> json:
         with open(self.config_path, 'r') as config_file:
@@ -49,14 +48,42 @@ class Preorder():
         return data
     
     def xpath_selector(self, key) -> str:
-        if key == "PriceQuantity":
-            path = '//*[@id="product_form"]/div[1]/div[3]/ul/li[4]/a'
-        elif key == "Variations":
-            path = '//*[@id="product_form"]/div[1]/div[3]/ul/li[5]/a'
-        elif key == "Setting":
-            path = '//*[@id="product_form"]/div[1]/div[3]/ul/li[8]/a'
-        return path
+        config = self.read_config()
+        try:
+            return config["xpath"][key]
+        except:
+            print("No Corresponding Xpath in configuration.")
+            return ""
     
+    def tab_click_handler(self, driver, by, selector, max_attempts=15, delay=1) -> bool:
+        for attempt in range(max_attempts):
+            try:
+                element = driver.find_element(by, selector)
+                element.click()
+                return True  # Click succeeded
+            except (ElementNotInteractableException, ElementClickInterceptedException):
+                print(f"Attempt {attempt + 1}: Click failed, retrying...")
+                time.sleep(delay)
+        return False  # Click failed after max_attempts
+
+    def tab_click(self, driver, key):
+        selector = self.xpath_selector(key)
+        if self.tab_click_handler(driver, By.XPATH, selector):
+                print("Go to " + key +" tab")
+        else:
+            print("Unable to go " + key +" Tab, skip")
+
+    def switch_click_handler(self, driver, element, max_attempts=3, delay=1) -> bool:
+        for attempt in range(max_attempts):
+            try:
+                action = ActionChains(driver)
+                action.move_to_element(element).click().perform()
+                return True  # Click succeeded
+            except (ElementNotInteractableException, ElementClickInterceptedException):
+                print(f"Attempt {attempt + 1}: Click failed, retrying...")
+                time.sleep(delay)
+        return False  # Click failed after max_attempts
+
     def period_type_handler(self, period_type) -> (str, str):
         words = self.xls_to_list('template/period_template.xls')
         words.pop(0)
@@ -137,10 +164,9 @@ class Preorder():
 
             #Go to tab to turn off accept order option when back in stock
             if has_varient is False:
-                #the product doesnt have any variations, go to Price and Qty Tab
                 key = "PriceQuantity"
-                driver.find_element(By.XPATH, self.xpath_selector(key)).click()
-                print("Go to Price and Quantity Tab")
+                #the product doesnt have any variations, go to Price and Qty Tab
+                self.tab_click(driver, key)
                 xpath = '//input[@name="product_out_of_stock_orderable"]'
                 if self.pre_order_button_handler(driver,xpath,"close") is False:
                     driver.find_element(By.XPATH,self.xpath_selector(key)).click()
@@ -148,22 +174,23 @@ class Preorder():
             else:
                 #the product has variations, go to Variations Tab
                 key = "Variations"
-                driver.find_element(By.XPATH,self.xpath_selector(key)).click()
-                print("Go to Variations Tab")
+                self.tab_click(driver, key)
                 xpath = '//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input'
                 if self.pre_order_button_handler(driver,xpath,"close") is False:
                     driver.find_element(By.XPATH,self.xpath_selector(key)).click()
                     self.pre_order_button_handler(driver,xpath,"close")
 
             #Go to Setting tab for type in pre order message
-            element = WebDriverWait(driver, 90).until(EC.element_to_be_clickable((By.XPATH, self.xpath_selector("Setting"))))
-            element.click()
-            print("Go to Settings Tab")
+            self.tab_click(driver, "Setting")
+            
             pre_order_switch_xpath = '//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div'
             pre_order_switch = driver.find_element(By.XPATH, pre_order_switch_xpath)
             pre_order_switch_classess = pre_order_switch.get_attribute("class")
             if "switch-on" in pre_order_switch_classess:
-                ActionChains(driver).move_to_element(pre_order_switch).click().perform()
+                if self.switch_click_handler(driver, pre_order_switch):
+                    print("Switch clicked successfully.")
+                else:
+                    print("Switch click failed after multiple attempts.")
                 print("Switched off Preorder Product Setting")
             else:
                 print("No action, Switch alraedy off")
@@ -180,10 +207,9 @@ class Preorder():
 
             #Go to tab to turn on accept order option when out of stock
             if has_varient is False:
-                #the product doesnt have any variations, go to Price and Qty Tab
                 key = "PriceQuantity"
-                driver.find_element(By.XPATH,self.xpath_selector(key)).click()
-                print("Go to Price and Quantity Tab")
+                #the product doesnt have any variations, go to Price and Qty Tab
+                self.tab_click(driver, key)
                 xpath = '//input[@name="product_out_of_stock_orderable"]'
                 self.pre_order_button_handler(driver,xpath,"open")
                 if self.pre_order_button_handler(driver,xpath,"open") is False:
@@ -192,24 +218,23 @@ class Preorder():
             else:
                 #the product has variations, go to Variations Tab
                 key = "Variations"
-                driver.find_element(By.XPATH,self.xpath_selector(key)).click()
-                print("Go to Variations Tab")
+                self.tab_click(driver, key)
                 xpath = '//*[@id="productForm-variations"]/div/div[3]/div[3]/div[1]/div/div/div[2]/div/div[5]/label/input'
                 if self.pre_order_button_handler(driver,xpath,"open") is False:
                     driver.find_element(By.XPATH,self.xpath_selector(key)).click()
                     self.pre_order_button_handler(driver,xpath,"open")
 
             #Go to Setting tab for type in pre order message
-            element = WebDriverWait(driver, 90).until(EC.element_to_be_clickable((By.XPATH, self.xpath_selector("Setting"))))
-            element.click()
-            print("Go to Settings Tab")
+            self.tab_click(driver, "Setting")
             pre_order_switch_xpath = '//*[@id="productForm-settings"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div'
             pre_order_switch = driver.find_element(By.XPATH, pre_order_switch_xpath)
             pre_order_switch_classess = pre_order_switch.get_attribute("class")
 
             if "switch-off" in pre_order_switch_classess:
-                print("Not yet switched on Preorder Product Setting")
-                ActionChains(driver).move_to_element(pre_order_switch).click().perform()
+                if self.switch_click_handler(driver, pre_order_switch):
+                    print("Switch clicked successfully.")
+                else:
+                    print("Switch click failed after multiple attempts.")
                 print("Switched on Preorder Product Setting")
                 pre_order_msg_chinese, pre_order_msg_english = self.period_type_handler(period_type) 
                 english_msg_box = driver.find_element(By.XPATH,'//*[@id="productForm-settings"]/div[1]/div[3]/div[2]/div/div[2]/div/input')
@@ -245,7 +270,7 @@ class Preorder():
             print("Saved changes, completed")
 
     def PreOrderClose(self) -> None:
-        driver = webdriver.Chrome()
+        driver = self.webdriver.get_driver()
         process_list = []
         self.shopline_login(driver)
         time.sleep(5)
@@ -280,7 +305,7 @@ class Preorder():
         print("All Completed, End Task.")
 
     def PreOrderOpen(self) -> None:
-        driver = webdriver.Chrome()
+        driver = self.webdriver.get_driver()
         process_list = []
         self.shopline_login(driver)
         data = self.xls_to_list('search/namelist.xls')
@@ -343,7 +368,7 @@ class Preorder():
 
     def PreOrderCloseKeywords(self) -> None:
         print("Please wait for the data loaded...")
-        driver = webdriver.Chrome()  
+        driver = self.webdriver.get_driver()  
         self.shopline_login(driver)
         time.sleep(5)
         driver.get(self.api_url() + 'products?page=1&offset=0&limit=1000&scope=preorder')
@@ -376,7 +401,7 @@ class Preorder():
         print("Task Complete")
 
     def FindMissingPreOrderOpen(self) -> None:
-            driver = webdriver.Chrome()
+            driver = self.webdriver.get_driver()
             self.shopline_login(driver)
             time.sleep(5)
             keyword = input("Please input the keywords or exact product Chinese name: ")
@@ -422,7 +447,7 @@ class Preorder():
 
     def PreOrderDescriptionForceUpdate(self) -> None:
         print("Please wait for the data loaded...")
-        driver = webdriver.Chrome()
+        driver = self.webdriver.get_driver()
         self.shopline_login(driver)
         time.sleep(5)
         driver.get(self.api_url() + 'products?page=1&offset=0&limit=1000&scope=preorder')
