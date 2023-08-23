@@ -43,7 +43,7 @@ def main():
     print("Welcome to Shopline Pre Order Automation Tool")
     print("===================")
     print("Initializing...")
-    exclude_file_path = "search/exclude.xls"
+    exclude_file_path = "search\exclude.xls"
     create_exclude_excel_file(exclude_file_path)
 
     while True:
