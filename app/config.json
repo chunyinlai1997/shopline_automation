@@ -3,5 +3,10 @@
     "password": "Waddy1208",
     "login_url": "https://admin.shoplineapp.com/admin/waddystore/",
     "api_url": "https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/",
-    "shopline_merchant_id": "5f23e6c55680fc0012f13584"
+    "shopline_merchant_id": "5f23e6c55680fc0012f13584",
+    "xpath": {
+        "PriceQuantity": "//*[@id=\"product_form\"]/div[1]/div[3]/ul/li[4]/a",
+        "Variations": "//*[@id=\"product_form\"]/div[1]/div[3]/ul/li[5]/a",
+        "Setting": "//*[@id=\"product_form\"]/div[1]/div[3]/ul/li[8]/a"
+    }
 }
