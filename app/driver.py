@@ -9,7 +9,8 @@ class WebDriver:
         self.driver = None
 
     def create_driver(self):
-        self.driver = webdriver.Chrome(service=ChromeService( ChromeDriverManager().install()))
+        chrome_service = ChromeService(ChromeDriverManager().install())
+        self.driver = webdriver.Chrome(service=chrome_service, )
 
     def get_driver(self):
         if not self.driver:

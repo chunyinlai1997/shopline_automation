@@ -7,6 +7,7 @@ import json
 import time
 import xlrd
 import logging
+import requests
 
 class Preorder():
 
@@ -231,7 +232,7 @@ class Preorder():
             print(msg)
             logging.error(msg)
     
-    def save_button_handler(self, driver, max_attempts=3, delay=1) -> None:
+    def save_button_handler(self, driver, max_attempts=8, delay=1) -> None:
         msg = "Saved changes, completed"
         save_button_xpath = self.xpath_selector("actions", "save_button")
 
@@ -252,13 +253,13 @@ class Preorder():
     def pre_order_close_action(self, process_list, driver) -> None:
         mode = "close"
         
-        for sku_id, has_varient, chinese_name in process_list:
-            print("Now browsing to SKU: " + sku_id)
+        for sku_id, has_variant, chinese_name in process_list:
+            print("Now browsing to " + chinese_name +", SKU: " + sku_id)
             driver.get(self.config_url()+"products/"+sku_id+"/edit")
             driver.implicitly_wait(10)
 
             #Go to tab to turn off accept order option when back in stock
-            if has_varient is False:
+            if has_variant is False:
                 #the product doesnt have any variations, go to Price and Qty Tab
                 key = "PriceQuantity"
                 self.tab_click(driver, key)
@@ -281,13 +282,13 @@ class Preorder():
     def pre_order_open_action(self, process_list, driver, replace) -> None:
         mode = "open"
 
-        for sku_id, has_varient, period_type, chinese_name in process_list:
-            print("Now browsing to SKU: " + sku_id)
+        for sku_id, has_variant, period_type, chinese_name in process_list:
+            print("Now browsing to " + chinese_name +", SKU: " + sku_id)
             driver.get(self.config_url()+"products/"+sku_id+"/edit")
             driver.implicitly_wait(10)
 
             #Go to tab to turn on accept order option when out of stock
-            if has_varient is False:
+            if has_variant is False:
                 #the product doesnt have any variations, go to Price and Qty Tab
                 key = "PriceQuantity"
                 self.tab_click(driver, key)
@@ -311,9 +312,9 @@ class Preorder():
         driver = self.webdriver.get_driver()
         process_list = []
         self.shopline_login(driver)
-        time.sleep(5)
+        time.sleep(3)
         driver.get(self.api_url() + 'products?page=1&offset=0&limit=1000&scope=preorder')       
-        time.sleep(5)
+        time.sleep(3)
         html_response = driver.find_element(By.XPATH, '/html/body/pre').text
         json_data = json.loads(html_response)
         print("Collected data....")
@@ -326,13 +327,13 @@ class Preorder():
             is_preorder = item['is_preorder']
             sku_id = item['id']
             chinese_name = item['title_translations']['zh-hant']
-            has_varient = False
+            has_variant = False
             if len(item["variations"]) > 0:
-                has_varient = True
+                has_variant = True
 
             if int(quantity) > 0 and status == "active" and is_preorder == True:
                 print(chinese_name)
-                process_list.append([sku_id, has_varient, chinese_name])
+                process_list.append([sku_id, has_variant, chinese_name])
         
         print("Process items: ")
         print(process_list) 
@@ -375,24 +376,24 @@ class Preorder():
                 is_preorder = item['is_preorder']
                 sku_id = item['id']
                 chinese_name = item['title_translations']['zh-hant']
-                has_varient = False
+                has_variant = False
                 if len(item["variations"]) > 0:
-                    has_varient = True
+                    has_variant = True
 
-                not_dis = False
+                not_discounted = False
                 if item['tags_array'] is None:
-                    not_dis = True
+                    not_discounted = True
                 elif item['sku'] is None or 'dis' not in item['tags_array'] or 'dis' not in item['sku']:
-                    not_dis = True
+                    not_discounted = True
 
-                if not_dis == True:
+                if not_discounted == True:
                     if quantity <= 0 and not is_preorder and status == "active":
                         is_duplicate = any(item[0] == sku_id for item in process_list)
                         if not is_duplicate:
                             not_in_exclude_list = all(chinese_name not in item for item in exclude_list)
                             if not_in_exclude_list:
                                 print(chinese_name)
-                                process_list.append([sku_id, has_varient, search_for[key], chinese_name])
+                                process_list.append([sku_id, has_variant, search_for[key], chinese_name])
 
         print("Collected data....")
         print("Process items: ")
@@ -408,7 +409,7 @@ class Preorder():
         print("Please wait for the data loaded...")
         driver = self.webdriver.get_driver()  
         self.shopline_login(driver)
-        time.sleep(5)
+        time.sleep(3)
         driver.get(self.api_url() + 'products?page=1&offset=0&limit=1000&scope=preorder')
         html_response = driver.find_element(By.XPATH, '/html/body/pre').text
         json_data = json.loads(html_response)
@@ -422,13 +423,13 @@ class Preorder():
         for item in product_items:
             chinese_name = item['title_translations']['zh-hant']
             sku_id = item['id']
-            has_varient = False
+            has_variant = False
             print()
             if len(item["variations"]) > 0:
-                has_varient = True
+                has_variant = True
             
             if keyword in chinese_name:
-                process_list.append([sku_id, has_varient, chinese_name])
+                process_list.append([sku_id, has_variant, chinese_name])
 
         print("Process items: ")
         print(process_list) 
@@ -438,56 +439,102 @@ class Preorder():
         self.pre_order_close_action(process_list, driver)
         print("Task Complete")
 
-    def FindMissingPreOrderOpen(self) -> None:
-            driver = self.webdriver.get_driver()
-            self.shopline_login(driver)
-            time.sleep(5)
-            keyword = input("Please input the keywords or exact product Chinese name: ")
-            driver.get(self.api_url() + 'products?page=1&offset=0&limit=10000&query=' + keyword+'&scope=search')
-            html_response = driver.find_element(By.XPATH, '/html/body/pre').text
-            json_data = json.loads(html_response)
-            product_items = json_data['data']['items']
-            print("total items found: " + str(len(product_items)))
-            
-            process_list = []
-            data = self.xls_to_list('search/namelist.xls')
-            data.pop(0)
-            search_for = dict([[row[0], row[1]] for row in data])
+    def FindMissingPreOrderOpen(self, products_limit=5000) -> None:
+        driver = self.webdriver.get_driver()
+        self.shopline_login(driver)
+        time.sleep(3)
+        print("Please wait....")
+        api_url = self.api_url() + "products?page=1&offset=0&limit="+ products_limit + "&scope=search"
+        driver.get(api_url)
+        html_response = driver.find_element(By.XPATH, '/html/body/pre').text
+        json_data = json.loads(html_response)
+        product_items = json_data['data']['items']
+        print("total items found: " + str(len(product_items)))
 
-            for item in product_items:
+        open_preorder_process_list = []
+        close_preorder_process_list = []
+
+        data = self.xls_to_list('search/namelist.xls')
+        data.pop(0)
+        #search_for = dict([[row[0], row[1]] for row in data])
+
+        for item in product_items:
+            chinese_name = ""
+            try:
                 chinese_name = item['title_translations']['zh-hant']
-                sku_id = item['id']
-                quantity = item['quantity']
-                has_varient = False
-                if quantity > 0: 
-                    pass
-                else:
-                    if len(item["variations"]) > 0:
-                        has_varient = True
+            except KeyError as e:
+                chinese_name = item['title_translations']['en']
+            sku_id = item['_id']
+            quantity = item['quantity']
+            is_preorder = item['is_preorder']
+            out_of_stock_orderable = item['out_of_stock_orderable']
+            status = item['status']
 
-                    if keyword in chinese_name:
-                        if any(key in chinese_name for key in search_for.keys()):
-                            print(chinese_name + " in pre-order keyword list, skip")
-                            logging.info(chinese_name + " in pre-order keyword list, skip")
+            has_variant = len(item.get('variations', [])) > 0
+
+            not_discounted = (
+                item['tags_array'] is None
+                or item['sku'] is None
+                or 'dis' not in item['tags_array']
+                or 'dis' not in item['sku']
+            )
+
+            close_msg = chinese_name + " is added to close pre oreder"
+            open_msg = chinese_name + " is added to open pre oreder"
+
+            if status == "active":
+                if is_preorder and out_of_stock_orderable:
+                    if quantity > 0:
+                        print(close_msg)
+                        logging.info(close_msg)
+                        close_preorder_process_list.append([sku_id, has_variant, chinese_name])
+                    else:
+                        if not_discounted is False:
+                            print(close_msg)
+                            logging.info(close_msg)
+                            close_preorder_process_list.append([sku_id, has_variant, chinese_name])
                         else:
-                            print(chinese_name)
-                            logging.info(chinese_name)
-                            process_list.append([sku_id, has_varient, 'C', chinese_name])
+                            print(open_msg)
+                            logging.info(open_msg)
+                            open_preorder_process_list.append([sku_id, has_variant, "C", chinese_name])
+                elif not is_preorder and out_of_stock_orderable:
+                    if not_discounted is False:
+                        print(close_msg)
+                        logging.info(close_msg)
+                        close_preorder_process_list.append([sku_id, has_variant, chinese_name])
+                    else:
+                        print(open_msg)
+                        logging.info(open_msg)
+                        open_preorder_process_list.append([sku_id, has_variant, "C", chinese_name])
+                elif not is_preorder and not out_of_stock_orderable:
+                    pass  # Irrelevant, skip
+                elif is_preorder and not out_of_stock_orderable:
+                    close_preorder_process_list.append([sku_id, has_variant, chinese_name])
+            else:
+                pass
 
-            print("Process items: ")
-            print(process_list) 
-            print("total items to execute: " + str(len(process_list)))
-            logging.info("process_list as following")
-            logging.info(process_list)
-            replace=False
-            self.pre_order_open_action(process_list, driver, replace)
-            print("Task Complete")
+        print("Process Open Pre-order items: ")
+        print(open_preorder_process_list)
+        print("total items to execute: " + str(len(open_preorder_process_list)))
+        logging.info("process_list as following")
+        logging.info(open_preorder_process_list)
+        replace = False
+        self.pre_order_open_action(open_preorder_process_list, driver, replace)
+
+        print("Process Close Pre-order items: ")
+        print(close_preorder_process_list)
+        print("total items to execute: " + str(len(close_preorder_process_list)))
+        logging.info("process_list as following")
+        logging.info(close_preorder_process_list)
+        self.pre_order_close_action(close_preorder_process_list, driver)
+
+        print("Find Missing Pre-Order Task Complete")
 
     def PreOrderDescriptionForceUpdate(self) -> None:
         print("Please wait for the data loaded...")
         driver = self.webdriver.get_driver()
         self.shopline_login(driver)
-        time.sleep(5)
+        time.sleep(3)
         driver.get(self.api_url() + 'products?page=1&offset=0&limit=1000&scope=preorder')
         html_response = driver.find_element(By.XPATH, '/html/body/pre').text
         json_data = json.loads(html_response)
@@ -503,15 +550,15 @@ class Preorder():
         for item in product_items:
             chinese_name = item['title_translations']['zh-hant']
             sku_id = item['id']
-            has_varient = False
+            has_variant = False
             print()
             if len(item["variations"]) > 0:
-                has_varient = True
+                has_variant = True
             
             if keyword in chinese_name:
                 is_duplicate = any(item[0] == sku_id for item in process_list)
                 if not is_duplicate:
-                    process_list.append([sku_id, has_varient, key_period, chinese_name])
+                    process_list.append([sku_id, has_variant, key_period, chinese_name])
 
         print("Collected data....")
         print("Process items: ")
