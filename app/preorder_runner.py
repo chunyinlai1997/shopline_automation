@@ -43,7 +43,7 @@ def main():
     print("Welcome to Shopline Pre Order Automation Tool")
     print("===================")
     print("Initializing...")
-    exclude_file_path = "search/exclude.xls"
+    exclude_file_path = "search\exclude.xls"
     create_exclude_excel_file(exclude_file_path)
 
     while True:
@@ -52,8 +52,8 @@ def main():
         print("daily: Run all daily routines")
         print("1: Close all Pre-order")
         print("2: Open all Pre-order")
-        print("3: Close Pre-order by keyword")
-        print("4: Find Missing Pre-order by keyword")
+        print("3: Find Missing Pre-order")
+        print("4: Close Pre-order by keyword")
         print("5: Pre-order Description Force Update")
         print("quit: Quit")
 
@@ -71,13 +71,16 @@ def main():
             open_preorder()
             logging.info('All pre-order opened successfully')
         elif choice == '3':
+            logging.info("Executing find Missing Pre-order")
+            find_missing()
+            logging.info("Find missing pre-order successfully")
+            #Run again a daily routine
+            print("Re-run daily routines...")
+            daily_routines()
+        elif choice == '4':
             logging.info("Executing close pre-order by keyword")
             close_preorder_by_keywords()
             logging.info("Pre-order closed by keyword successfully")
-        elif choice == '4':
-            logging.info("Executing find Missing Pre-order by keyword")
-            find_missing()
-            logging.info("Find missing pre-order by keyword successfully")
         elif choice == '5':
             logging.info("Executing pre-order Description force update")
             description_force_update()

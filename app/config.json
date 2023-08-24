@@ -5,8 +5,24 @@
     "api_url": "https://admin.shoplineapp.com/api/admin/v1/5f23e6c55680fc0012f13584/",
     "shopline_merchant_id": "5f23e6c55680fc0012f13584",
     "xpath": {
-        "PriceQuantity": "//*[@id=\"product_form\"]/div[1]/div[3]/ul/li[4]/a",
-        "Variations": "//*[@id=\"product_form\"]/div[1]/div[3]/ul/li[5]/a",
-        "Setting": "//*[@id=\"product_form\"]/div[1]/div[3]/ul/li[8]/a"
+        "tab" : {
+            "PriceQuantity": "//*[@id=\"product_form\"]/div[1]/div[3]/ul/li[4]/a",
+            "Variations": "//*[@id=\"product_form\"]/div[1]/div[3]/ul/li[5]/a",
+            "Setting": "//*[@id=\"product_form\"]/div[1]/div[3]/ul/li[8]/a"
+        },
+        "PriceQuantity_tab": {
+            "pre_order_button": "//input[@name=\"product_out_of_stock_orderable\"]"
+        },
+        "Variations_tab": {
+            "pre_order_button": "//input[@name=\"product_out_of_stock_orderable\"]"
+        },
+        "Setting_tab": {
+            "pre_order_switch": "//*[@id=\"productForm-settings\"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div",
+            "english_msg_box": "//*[@id=\"productForm-settings\"]/div[1]/div[3]/div[2]/div/div[2]/div/input",
+            "chinese_msg_box": "//*[@id=\"productForm-settings\"]/div[1]/div[3]/div[3]/div/div[2]/div/input"
+        },
+        "actions":{
+            "save_button": "//*[@id=\"product_form\"]/div[1]/div[1]/div/span[2]/button/span[2]"
+        }
     }
 }

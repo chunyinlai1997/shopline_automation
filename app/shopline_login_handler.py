@@ -25,7 +25,7 @@ class ShoplineLoginHandler():
         driver.find_element(By.ID, "staff_email").send_keys(username)
         driver.find_element(By.ID, "staff_password").send_keys(password)
 
-        wait = WebDriverWait(driver, 120)
+        wait = WebDriverWait(driver, 20)
 
         while True:
             try:
