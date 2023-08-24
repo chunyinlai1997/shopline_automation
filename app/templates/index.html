@@ -7,10 +7,32 @@
     <h1>Welcome to Shopline Automation Tool</h1>
     <form method="post">
         <select name="choice">
+            <option value="default">Choose one service from below</option>
             <option value="1">Pre Order Automation Tool</option>
             <option value="2">Google Category Compliance Update</option>
         </select>
+
+        <!-- Add a new dropdown for the actions -->
+        <select name="pre_order_action" id="pre_order_action" style="display: none;">
+            <option value="daily">Run all daily routines</option>
+            <option value="1">Close all Pre-order</option>
+            <option value="2">Open all Pre-order</option>
+            <option value="3">Find Missing Pre-order</option>
+        </select>
+
         <button type="submit">Submit</button>
     </form>
+
+    <script>
+        // Show the second dropdown when "Pre Order Automation Tool" is selected
+        document.querySelector('select[name="choice"]').addEventListener('change', function() {
+            const actionDropdown = document.getElementById('pre_order_action');
+            if (this.value === '1') {
+                actionDropdown.style.display = 'block';
+            } else {
+                actionDropdown.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>

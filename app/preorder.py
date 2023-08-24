@@ -404,6 +404,7 @@ class Preorder():
         replace = False
         self.pre_order_open_action(process_list, driver, replace)
         print("All Completed, End Task.")
+        self.webdriver.close_driver()
 
     def PreOrderCloseKeywords(self) -> None:
         print("Please wait for the data loaded...")
@@ -438,6 +439,7 @@ class Preorder():
         logging.info(process_list)
         self.pre_order_close_action(process_list, driver)
         print("Task Complete")
+        self.webdriver.close_driver()
 
     def FindMissingPreOrderOpen(self, products_limit=5000) -> None:
         driver = self.webdriver.get_driver()
@@ -529,6 +531,7 @@ class Preorder():
         self.pre_order_close_action(close_preorder_process_list, driver)
 
         print("Find Missing Pre-Order Task Complete")
+        self.webdriver.close_driver()
 
     def PreOrderDescriptionForceUpdate(self) -> None:
         print("Please wait for the data loaded...")

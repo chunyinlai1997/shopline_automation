@@ -76,12 +76,7 @@ def main():
             logging.info("Find missing pre-order successfully")
             #Run again a daily routine
             print("Re-run daily routines...")
-            logging.info("Executing close all Pre-order")
-            close_preorder()
-            logging.info('All pre-order closed successfully')
-            logging.info("Executing open all Pre-order")
-            open_preorder()
-            logging.info('All pre-order opened successfully')
+            daily_routines()
         elif choice == '4':
             logging.info("Executing close pre-order by keyword")
             close_preorder_by_keywords()
