@@ -1,4 +1,5 @@
 from selenium.webdriver.common.by import By
+from selenium import webdriver
 from selenium.webdriver import Keys, ActionChains
 from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException, ElementClickInterceptedException
 import shopline_login_handler as ShoplineLogin
@@ -8,6 +9,7 @@ import time
 import xlrd
 import logging
 import requests
+import os
 
 class Preorder():
 
@@ -29,7 +31,7 @@ class Preorder():
         config = self.read_config()
         return config["api_url"]
     
-    def shopline_login(self, driver) -> None:
+    def shopline_login(self, driver: webdriver.Chrome) -> None:
         self.login_handler.shopline_login(driver)
 
     def xls_to_list(self, path) -> list:
@@ -58,7 +60,7 @@ class Preorder():
             logging.error(msg)
             return ""
     
-    def tab_click_handler(self, driver, by, selector, max_attempts=15, delay=1) -> bool:
+    def tab_click_handler(self, driver: webdriver.Chrome, by, selector, max_attempts=15, delay=1) -> bool:
         for attempt in range(max_attempts):
             try:
                 element = driver.find_element(by, selector)
@@ -71,14 +73,14 @@ class Preorder():
                 time.sleep(delay)
         return False  # Click failed after max_attempts
 
-    def tab_click(self, driver, key):
+    def tab_click(self, driver: webdriver.Chrome, key):
         selector = self.xpath_selector("tab", key)
         if self.tab_click_handler(driver, By.XPATH, selector):
                 print("Go to " + key +" tab")
         else:
             print("Unable to go " + key +" Tab, skip")
 
-    def switch_click_handler(self, driver, element, max_attempts=3, delay=1) -> bool:
+    def switch_click_handler(self, driver: webdriver.Chrome, element, max_attempts=3, delay=1) -> bool:
         for attempt in range(max_attempts):
             try:
                 action = ActionChains(driver)
@@ -108,7 +110,7 @@ class Preorder():
 
         return chinese, english
     
-    def checkbox_click(self, driver, button_path) -> bool:
+    def checkbox_click(self, driver: webdriver.Chrome, button_path) -> bool:
         print("clicking checkbox")
         try:
             driver.find_element(By.XPATH, button_path).click()
@@ -119,7 +121,7 @@ class Preorder():
             print(msg)
             return False
 
-    def pre_order_button_handler(self, driver, button_path, mode) -> bool:
+    def pre_order_button_handler(self, driver: webdriver.Chrome, button_path, mode) -> bool:
         print("Clicking button or checkbox...")
         button_found = False
         while button_found is False:
@@ -154,7 +156,7 @@ class Preorder():
                 pass
         return True
 
-    def pre_order_click(self, driver, key, xpath, option) -> None:
+    def pre_order_click(self, driver: webdriver.Chrome, key, xpath, option) -> None:
         if self.pre_order_button_handler(driver,xpath, option) is False:
             msg = "pre order button failed, retrying..."
             print(msg)
@@ -164,7 +166,7 @@ class Preorder():
         else:
             pass
 
-    def pre_order_switch_off_handler(self, driver) -> None:
+    def pre_order_switch_off_handler(self, driver: webdriver.Chrome) -> None:
         pre_order_switch_xpath = self.xpath_selector("Setting_tab", "pre_order_switch")
         pre_order_switch = driver.find_element(By.XPATH, pre_order_switch_xpath)
         pre_order_switch_classess = pre_order_switch.get_attribute("class")
@@ -183,7 +185,7 @@ class Preorder():
         pre_order_switch = driver.find_element(By.XPATH, pre_order_switch_xpath)
         pre_order_switch_class = pre_order_switch.get_attribute("class")
         
-        def type_in_msg_box(driver, msg_box, message, max_attempts=8, delay=1):
+        def type_in_msg_box(driver: webdriver.Chrome , msg_box, message, max_attempts=8, delay=1):
             for attempt in range(max_attempts):
                 try:
                     msg_box.send_keys(Keys.CONTROL, 'a')
@@ -232,7 +234,7 @@ class Preorder():
             print(msg)
             logging.error(msg)
     
-    def save_button_handler(self, driver, max_attempts=8, delay=1) -> None:
+    def save_button_handler(self, driver: webdriver.Chrome, max_attempts=8, delay=1) -> None:
         msg = "Saved changes, completed"
         save_button_xpath = self.xpath_selector("actions", "save_button")
 
@@ -250,12 +252,39 @@ class Preorder():
                 time.sleep(delay)
         print("Save button click failed after multiple attempts.")
 
+    def fetch_product_items(self, driver: webdriver.Chrome, offset=0, limit=20, max_limit=500, case="scope=preorder", query = None) -> list:
+        all_product_items = []
+        print("fetching product items....")
+        
+        if query is None or query == " ":
+            query = ""
+        else:
+            query = "&" + query
+        
+        while limit <= max_limit:
+            url = self.api_url() + f"products?page=1&offset={offset}&limit={limit}&{case}" + query
+            driver.get(url)
+            time.sleep(1)
+            html_response = driver.find_element(By.XPATH, "/html/body/pre").text
+            try:
+                json_data = json.loads(html_response, strict=False)
+                product_items = json_data["data"]["items"]
+                all_product_items.extend(product_items)
+            except:
+                continue       
+
+            if len(product_items) < limit:
+                break
+            offset += limit
+
+        return all_product_items
+
     def pre_order_close_action(self, process_list, driver) -> None:
         mode = "close"
         
         for sku_id, has_variant, chinese_name in process_list:
             print("Now browsing to " + chinese_name +", SKU: " + sku_id)
-            driver.get(self.config_url()+"products/"+sku_id+"/edit")
+            driver.get(self.config_url() + "products/" + sku_id + "/edit")
             driver.implicitly_wait(10)
 
             #Go to tab to turn off accept order option when back in stock
@@ -284,7 +313,7 @@ class Preorder():
 
         for sku_id, has_variant, period_type, chinese_name in process_list:
             print("Now browsing to " + chinese_name +", SKU: " + sku_id)
-            driver.get(self.config_url()+"products/"+sku_id+"/edit")
+            driver.get(self.config_url() + "products/" + sku_id + "/edit")
             driver.implicitly_wait(10)
 
             #Go to tab to turn on accept order option when out of stock
@@ -312,15 +341,10 @@ class Preorder():
         driver = self.webdriver.get_driver()
         process_list = []
         self.shopline_login(driver)
-        time.sleep(3)
-        driver.get(self.api_url() + 'products?page=1&offset=0&limit=1000&scope=preorder')       
-        time.sleep(3)
-        html_response = driver.find_element(By.XPATH, '/html/body/pre').text
-        json_data = json.loads(html_response)
-        print("Collected data....")
-        product_items = json_data['data']['items']
-        print("total items found: " + str(len(product_items)))
+        time.sleep(1)
         
+        product_items = self.fetch_product_items(driver, offset=0, limit=20, max_limit=500, case="scope=preorder")
+
         for item in product_items:
             quantity = item['quantity']
             status = item['status']
@@ -361,14 +385,8 @@ class Preorder():
 
         for key in search_for.keys():
             time.sleep(0.5)
-            driver.get(self.api_url() + 'products?page=1&offset=0&limit=10000&query='+ key +'&scope=search')
-            html_response = driver.find_element(By.XPATH, '/html/body/pre').text
-            json_data = json.loads(html_response)
 
-            if 'data' in json_data and 'items' in json_data['data']:
-                product_items = json_data['data']['items']
-            else:
-                product_items = []
+            product_items = self.fetch_product_items(driver, offset=0, limit=20, max_limit=10000, case="scope=search", query="query=" + key)
 
             for item in product_items:
                 quantity = item['quantity']
@@ -411,10 +429,7 @@ class Preorder():
         driver = self.webdriver.get_driver()  
         self.shopline_login(driver)
         time.sleep(3)
-        driver.get(self.api_url() + 'products?page=1&offset=0&limit=1000&scope=preorder')
-        html_response = driver.find_element(By.XPATH, '/html/body/pre').text
-        json_data = json.loads(html_response)
-        product_items = json_data['data']['items']
+        product_items = self.fetch_product_items(driver, offset=0, limit=20, max_limit=1000, case="scope=preorder")
         print("total items found: " + str( len(product_items)))
         keyword = input("Please input the keywords or exact product Chinese name: ")
         logging.info('Submitted keyword: ' + keyword)
@@ -446,11 +461,7 @@ class Preorder():
         self.shopline_login(driver)
         time.sleep(3)
         print("Please wait....")
-        api_url = self.api_url() + "products?page=1&offset=0&limit="+ products_limit + "&scope=search"
-        driver.get(api_url)
-        html_response = driver.find_element(By.XPATH, '/html/body/pre').text
-        json_data = json.loads(html_response)
-        product_items = json_data['data']['items']
+        product_items = self.fetch_product_items(driver, offset=0, limit=20, max_limit=products_limit, case="scope=search")
         print("total items found: " + str(len(product_items)))
 
         open_preorder_process_list = []
@@ -538,7 +549,7 @@ class Preorder():
         driver = self.webdriver.get_driver()
         self.shopline_login(driver)
         time.sleep(3)
-        driver.get(self.api_url() + 'products?page=1&offset=0&limit=1000&scope=preorder')
+        product_items = self.fetch_product_items(driver, offset=0, limit=20, max_limit=1000, case="scope=preorder")
         html_response = driver.find_element(By.XPATH, '/html/body/pre').text
         json_data = json.loads(html_response)
         product_items = json_data['data']['items']

@@ -11,10 +11,14 @@ class WebDriver:
 
     def create_driver(self):
         ch_options = Options()
-        ch_options.add_argument("--headless")
+        #ch_options.add_argument("--headless")
+        ch_options.add_experimental_option("prefs", {
+        "download.default_directory": r"tmp",
+        "download.prompt_for_download": False
+        })
 
         chrome_service = ChromeService(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(service=chrome_service, chrome_options=ch_options)
+        self.driver = webdriver.Chrome(service=chrome_service, options=ch_options)
 
     def get_driver(self):
         if not self.driver:
