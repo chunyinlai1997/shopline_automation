@@ -410,7 +410,7 @@ class Preorder():
                         if not is_duplicate:
                             not_in_exclude_list = all(chinese_name not in item for item in exclude_list)
                             if not_in_exclude_list:
-                                print(chinese_name)
+                                print("Found product:", chinese_name, "SKU:", sku_id)
                                 process_list.append([sku_id, has_variant, search_for[key], chinese_name])
 
         print("Collected data....")
