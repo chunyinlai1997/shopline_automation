@@ -2,9 +2,9 @@
 
 Author: Willon Lai
 
-Version: 2.1
+Version: 3.0
 
-Last Update: 14/8/2023
+Last Update: 31/10/2023
 
 - Functions
   1. Automotaion tool in handling pre-order settings
@@ -33,10 +33,9 @@ python main.py
 
 Prepare for the Browser (recommend using Chrome)
 
-* Using Google Chrome in Ubuntu on Windows Subsystem Linux
-
+* If you're using Google Chrome in Ubuntu on Windows Subsystem Linux.
+  
 Download and install Chrome (Linux):
-
 ```
 sudo apt update && sudo apt -y upgrade && sudo apt -y autoremove
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
@@ -49,11 +48,27 @@ Check that it's installed ok:
 google-chrome --version
 ```
 
-* Using Google Chrome in Mac
+* Using Google Chrome in Mac or Windows
 
-Just make sure you have installed Chrome in your Mac
+Just make sure you have installed Chrome broswer.
 
-Shopline API
+
+Pre-Order Data
+
+- exclude.xls
+
+A list of Chinese peoduct title which are not able to provide pre order service at the moment.
+
+- namelist.xls
+
+A list of keywords that are allow for pre order and a column of period indicator, keywords are usually are brand name or series name.
+
+- period_template.xls
+The template of the pre-order message in both Chinese and English.
+
+
+
+Shopline API Reference
 
 Products JSON
 
