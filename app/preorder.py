@@ -34,7 +34,7 @@ class Preorder():
     def shopline_login(self, driver: webdriver.Chrome) -> None:
         self.login_handler.shopline_login(driver)
 
-    def xls_to_list(self, path) -> list:
+    def xls_to_list(self, path: str) -> list:
         workbook = xlrd.open_workbook(path)
         worksheet = workbook.sheet_by_index(0)
         num_rows = worksheet.nrows
@@ -50,7 +50,7 @@ class Preorder():
 
         return data
     
-    def xpath_selector(self, sub_type, key) -> str:
+    def xpath_selector(self, sub_type: str, key:str) -> str:
         config = self.read_config()
         try:
             return config["xpath"][sub_type][key]
@@ -80,11 +80,11 @@ class Preorder():
         else:
             print("Unable to go " + key +" Tab, skip")
 
-    def switch_click_handler(self, driver: webdriver.Chrome, element, max_attempts=3, delay=1) -> bool:
+    def switch_click_handler(self, driver: webdriver.Chrome, switch_path, max_attempts=3, delay=1) -> bool:
         for attempt in range(max_attempts):
             try:
                 action = ActionChains(driver)
-                action.move_to_element(element).click().perform()
+                action.move_to_element(switch_path).click().perform()
                 return True  # Click succeeded
             except (ElementNotInteractableException, ElementClickInterceptedException):
                 print(f"Attempt {attempt + 1}: Click failed, retrying...")
@@ -110,8 +110,8 @@ class Preorder():
 
         return chinese, english
     
-    def checkbox_click(self, driver: webdriver.Chrome, button_path) -> bool:
-        print("clicking checkbox")
+    def checkbox_click(self, driver: webdriver.Chrome, button_path: str) -> bool:
+        print("Clicking checkbox")
         try:
             driver.find_element(By.XPATH, button_path).click()
             return True
@@ -121,71 +121,44 @@ class Preorder():
             print(msg)
             return False
 
-    def pre_order_button_handler(self, driver: webdriver.Chrome, button_path, mode) -> bool:
-        print("Clicking button or checkbox...")
-        button_found = False
-        while button_found is False:
-            try:
-                accept_button = driver.find_element(By.XPATH, button_path)
-                button_found = True
-            except NoSuchElementException:
-                logging.error("NoSuchElementException")
-                print("NoSuchElementException")
-                button_found = False
-
-        accept_button_status = accept_button.get_attribute('checked')
-        print("Checkbox Status is ", accept_button_status)
-
-        if mode == "open":
-            if accept_button_status == True or accept_button_status == "true":
-                print("pass clicking checkbox, already checked")
-            elif accept_button_status == None:
-                if self.checkbox_click(driver, button_path):
-                    return False
-            else:
-                logging.error("fall into else, cannot locate button")
-                pass
-        elif mode == "close":
-            if accept_button_status == True or accept_button_status == "true":
-                if self.checkbox_click(driver, button_path):
-                    return False
-            elif accept_button_status == None:
-                print("pass clicking checkbox, already unchecked")
-            else:
-                logging.error("unable to locate button")
-                pass
-        return True
-
-    def pre_order_click(self, driver: webdriver.Chrome, key, xpath, option) -> None:
-        if self.pre_order_button_handler(driver,xpath, option) is False:
-            msg = "pre order button failed, retrying..."
-            print(msg)
-            logging.debug(msg)
-            self.tab_click(driver, key)
-            self.pre_order_button_handler(driver,xpath, option)
-        else:
-            pass
-
-    def pre_order_switch_off_handler(self, driver: webdriver.Chrome) -> None:
-        pre_order_switch_xpath = self.xpath_selector("Setting_tab", "pre_order_switch")
+    def pre_order_switch_handler(self, driver: webdriver.Chrome, pre_order_switch_xpath: str, mode: str) -> bool:
+        print("Clicking Pre-Order Switch")
         pre_order_switch = driver.find_element(By.XPATH, pre_order_switch_xpath)
         pre_order_switch_classess = pre_order_switch.get_attribute("class")
 
-        if "switch-on" in pre_order_switch_classess:
-            if self.switch_click_handler(driver, pre_order_switch):
-                print("Switch clicked successfully.")
+        if mode == "close":
+            if "switch-on" in pre_order_switch_classess:
+                if self.switch_click_handler(driver, pre_order_switch):
+                    print("Switch clicked successfully.")
+                else:
+                    print("Switch click failed after multiple attempts.")
+                print("Switched off Preorder Product Setting")
             else:
-                print("Switch click failed after multiple attempts.")
-            print("Switched off Preorder Product Setting")
-        else:
-            print("No action, Switch alraedy off")
+                print("No action, Switch alraedy off")
+        elif mode == "open":
+            if "switch-off" in pre_order_switch_classess:
+                if self.switch_click_handler(driver, pre_order_switch):
+                    print("Switch clicked successfully.")
+                else:
+                    print("Switch click failed after multiple attempts.")
+                print("Switched off Preorder Product Setting")
+            else:
+                print("No action, Switch alraedy on")
 
-    def pre_order_switch_on_handler(self, driver, period_type, replace) -> None:
-        pre_order_switch_xpath = self.xpath_selector("Setting_tab", "pre_order_switch")
-        pre_order_switch = driver.find_element(By.XPATH, pre_order_switch_xpath)
-        pre_order_switch_class = pre_order_switch.get_attribute("class")
-        
-        def type_in_msg_box(driver: webdriver.Chrome , msg_box, message, max_attempts=8, delay=1):
+
+    def pre_order_click_switch(self, driver: webdriver.Chrome, key: str, xpath: str, option: str) -> None:
+        if self.pre_order_switch_handler(driver, xpath, option) is False:
+            msg = "Pre-Order Switch failed, retrying..."
+            print(msg)
+            logging.debug(msg)
+            self.tab_click(driver, key)
+            self.pre_order_switch_handler(driver, xpath, option)
+        else:
+            pass
+    
+    def pre_order_msg_handler(self, driver: webdriver.Chrome, period_type: str, tab: str, replace = None) -> None:
+
+        def type_in_msg_box(driver: webdriver.Chrome, msg_box, message: str, max_attempts = 8, delay = 1):
             for attempt in range(max_attempts):
                 try:
                     msg_box.send_keys(Keys.CONTROL, 'a')
@@ -197,25 +170,11 @@ class Preorder():
                     print(f"Error: {str(e)}")
                     time.sleep(delay)
             return False  # Typing failed after max_attempts
-        
-        if "switch-on" in pre_order_switch_class and not replace:
-            print("Already switched on Preorder Product Setting")
-            return
-        
-        if "switch-off" in pre_order_switch_class or replace:
-            if not self.switch_click_handler(driver, pre_order_switch):
-                msg = "Switch click failed after multiple attempts."
-                print(msg)
-                logging.error(msg)
-                return
-            
-            print("Switch clicked successfully.")
-            print("Switched on Preorder Product Setting")
 
         pre_order_msg_chinese, pre_order_msg_english = self.period_type_handler(period_type)
         
-        english_msg_box = driver.find_element(By.XPATH, self.xpath_selector("Setting_tab", "english_msg_box"))
-        chinese_msg_box = driver.find_element(By.XPATH, self.xpath_selector("Setting_tab", "chinese_msg_box"))
+        english_msg_box = driver.find_element(By.XPATH, self.xpath_selector(tab, "english_msg_box"))
+        chinese_msg_box = driver.find_element(By.XPATH, self.xpath_selector(tab, "chinese_msg_box"))
         
         if type_in_msg_box(driver, english_msg_box, pre_order_msg_english):
             msg = "Typed in Preorder Product Note (English)"
@@ -287,28 +246,27 @@ class Preorder():
             driver.get(self.config_url() + "products/" + sku_id + "/edit")
             driver.implicitly_wait(10)
 
+            current_tab = ""
             #Go to tab to turn off accept order option when back in stock
             if has_variant is False:
                 #the product doesnt have any variations, go to Price and Qty Tab
                 key = "PriceQuantity"
+                current_tab = key+"_tab"
                 self.tab_click(driver, key)
-                pre_order_button_xpath = self.xpath_selector(key+"_tab", "pre_order_button")
-                self.pre_order_click(driver, key, pre_order_button_xpath, mode)
+                pre_order_switch_xpath = self.xpath_selector(current_tab, "pre_order_switch")
+                self.pre_order_click_switch(driver, key, pre_order_switch_xpath, mode)
             else:
                 #the product has variations, go to Variations Tab
                 key = "Variations"
+                current_tab = key+"_tab"
                 self.tab_click(driver, key)
-                pre_order_button_xpath = self.xpath_selector(key+"_tab", "pre_order_button")
-                self.pre_order_click(driver, key, pre_order_button_xpath, mode)
-
-            #Go to Setting tab for type in pre order message
-            self.tab_click(driver, "Setting")
-            self.pre_order_switch_off_handler(driver)       
+                pre_order_switch_xpath = self.xpath_selector(current_tab, "pre_order_switch")
+                self.pre_order_click_switch(driver, key, pre_order_switch_xpath, mode)
 
             #Save after changes
             self.save_button_handler(driver)
 
-    def pre_order_open_action(self, process_list, driver, replace) -> None:
+    def pre_order_open_action(self, process_list: list, driver: webdriver.Chrome, replace) -> None:
         mode = "open"
 
         for sku_id, has_variant, period_type, chinese_name in process_list:
@@ -316,23 +274,25 @@ class Preorder():
             driver.get(self.config_url() + "products/" + sku_id + "/edit")
             driver.implicitly_wait(10)
 
+            current_tab = ""
             #Go to tab to turn on accept order option when out of stock
             if has_variant is False:
                 #the product doesnt have any variations, go to Price and Qty Tab
                 key = "PriceQuantity"
+                current_tab = key+"_tab"
                 self.tab_click(driver, key)
-                pre_order_button_xpath = self.xpath_selector(key+"_tab", "pre_order_button")
-                self.pre_order_click(driver, key, pre_order_button_xpath, mode)
+                pre_order_switch_xpath = self.xpath_selector(current_tab, "pre_order_switch")
+                self.pre_order_click_switch(driver, key, pre_order_switch_xpath, mode)
             else:
                 #the product has variations, go to Variations Tab
                 key = "Variations"
+                current_tab = key+"_tab"
                 self.tab_click(driver, key)
-                pre_order_button_xpath = self.xpath_selector(key+"_tab", "pre_order_button")
-                self.pre_order_click(driver, key, pre_order_button_xpath, mode)
-
-            #Go to Setting tab for type in pre order message
-            self.tab_click(driver, "Setting")
-            self.pre_order_switch_on_handler(driver, period_type, replace)
+                pre_order_switch_xpath = self.xpath_selector(current_tab, "pre_order_switch")
+                self.pre_order_click_switch(driver, key, pre_order_switch_xpath, mode)
+            
+            #Update the Pre order message
+            self.pre_order_msg_handler(driver, period_type, current_tab, replace)
 
             #Save after changes
             self.save_button_handler(driver)
@@ -343,10 +303,17 @@ class Preorder():
         self.shopline_login(driver)
         time.sleep(1)
         
+        exclude_list = self.xls_to_list('search/exclude.xls')
+        exclude_list.pop(0)
+        exclude_list_items = [item for sublist in exclude_list for item in sublist]
+        print("Your exclude list:")
+        print(exclude_list_items)
+        print("You can edit the exclude list under 'search/' folder")
+
         product_items = self.fetch_product_items(driver, offset=0, limit=20, max_limit=500, case="scope=preorder")
 
         for item in product_items:
-            quantity = item['quantity']
+            #quantity = item['quantity'] #currently quantity is not a critiria
             status = item['status']
             is_preorder = item['is_preorder']
             sku_id = item['id']
@@ -355,9 +322,12 @@ class Preorder():
             if len(item["variations"]) > 0:
                 has_variant = True
 
-            if int(quantity) > 0 and status == "active" and is_preorder == True:
-                print(chinese_name)
-                process_list.append([sku_id, has_variant, chinese_name])
+            if status == "active" and is_preorder == True:
+                for exclude_item in exclude_list_items:
+                        if chinese_name in exclude_item:
+                            print(chinese_name)
+                            process_list.append([sku_id, has_variant, chinese_name])
+                            continue
         
         print("Process items: ")
         print(process_list) 
@@ -384,12 +354,11 @@ class Preorder():
         time.sleep(3)
 
         for key in search_for.keys():
-            time.sleep(0.5)
-
+            time.sleep(0.3)
             product_items = self.fetch_product_items(driver, offset=0, limit=20, max_limit=10000, case="scope=search", query="query=" + key)
 
             for item in product_items:
-                quantity = item['quantity']
+                #quantity = item['quantity'] #currently quantity is not a critiria
                 status = item['status']
                 is_preorder = item['is_preorder']
                 sku_id = item['id']
@@ -398,19 +367,19 @@ class Preorder():
                 if len(item["variations"]) > 0:
                     has_variant = True
 
-                not_discounted = False
+                not_discontinued = False
                 if item['tags_array'] is None:
-                    not_discounted = True
+                    not_discontinued = True
                 elif item['sku'] is None or 'dis' not in item['tags_array'] or 'dis' not in item['sku']:
-                    not_discounted = True
+                    not_discontinued = True
 
-                if not_discounted == True:
-                    if quantity <= 0 and not is_preorder and status == "active":
+                if not_discontinued == True:
+                    if is_preorder == False and status == "active":
                         is_duplicate = any(item[0] == sku_id for item in process_list)
                         if not is_duplicate:
                             not_in_exclude_list = all(chinese_name not in item for item in exclude_list)
                             if not_in_exclude_list:
-                                print(chinese_name)
+                                print("Found product:", chinese_name, "SKU:", sku_id)
                                 process_list.append([sku_id, has_variant, search_for[key], chinese_name])
 
         print("Collected data....")
@@ -485,7 +454,7 @@ class Preorder():
 
             has_variant = len(item.get('variations', [])) > 0
 
-            not_discounted = (
+            not_discontinued = (
                 item['tags_array'] is None
                 or item['sku'] is None
                 or 'dis' not in item['tags_array']
@@ -502,7 +471,7 @@ class Preorder():
                         logging.info(close_msg)
                         close_preorder_process_list.append([sku_id, has_variant, chinese_name])
                     else:
-                        if not_discounted is False:
+                        if not_discontinued is False:
                             print(close_msg)
                             logging.info(close_msg)
                             close_preorder_process_list.append([sku_id, has_variant, chinese_name])
@@ -511,7 +480,7 @@ class Preorder():
                             logging.info(open_msg)
                             open_preorder_process_list.append([sku_id, has_variant, "C", chinese_name])
                 elif not is_preorder and out_of_stock_orderable:
-                    if not_discounted is False:
+                    if not_discontinued is False:
                         print(close_msg)
                         logging.info(close_msg)
                         close_preorder_process_list.append([sku_id, has_variant, chinese_name])

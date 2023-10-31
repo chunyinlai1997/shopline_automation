@@ -11,15 +11,17 @@
             "Setting": "//*[@id=\"product_form\"]/div[1]/div[3]/ul/li[8]/a"
         },
         "PriceQuantity_tab": {
-            "pre_order_button": "//input[@name=\"product_out_of_stock_orderable\"]"
+            "pre_order_switch": "//*[@id=\"productForm-pricing\"]/div/div[4]/div[3]/product-quantity-limit-toggles/div[1]/div[1]/div[1]/div",
+            "english_msg_box": "//*[@id=\"productForm-pricing\"]/div/div[4]/div[3]/product-quantity-limit-toggles/div[1]/div[2]/div[2]/div/input",
+            "chinese_msg_box": "//*[@id=\"productForm-pricing\"]/div/div[4]/div[3]/product-quantity-limit-toggles/div[1]/div[2]/div[3]/div/input"
+            
         },
         "Variations_tab": {
-            "pre_order_button": "//input[@name=\"product_out_of_stock_orderable\"]"
+            "pre_order_switch": "//*[@id=\"productForm-variations\"]/div/div[3]/div[3]/div[2]/product-quantity-limit-toggles/div[1]/div[1]/div[1]/div",
+            "english_msg_box": "//*[@id=\"productForm-variations\"]/div/div[3]/div[3]/div[2]/product-quantity-limit-toggles/div[1]/div[2]/div[2]/div/input",
+            "chinese_msg_box": "//*[@id=\"productForm-variations\"]/div/div[3]/div[3]/div[2]/product-quantity-limit-toggles/div[1]/div[2]/div[3]/div/input"
         },
         "Setting_tab": {
-            "pre_order_switch": "//*[@id=\"productForm-settings\"]/div[1]/div[3]/div[1]/div/div[2]/div/div[1]/div",
-            "english_msg_box": "//*[@id=\"productForm-settings\"]/div[1]/div[3]/div[2]/div/div[2]/div/input",
-            "chinese_msg_box": "//*[@id=\"productForm-settings\"]/div[1]/div[3]/div[3]/div/div[2]/div/input"
         },
         "actions":{
             "save_button": "//*[@id=\"product_form\"]/div[1]/div[1]/div/span[2]/button/span[2]"
