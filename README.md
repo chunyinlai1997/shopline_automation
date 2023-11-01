@@ -34,8 +34,9 @@ python main.py
 Prepare for the Browser (recommend using Chrome)
 
 * If you're using Google Chrome in Ubuntu on Windows Subsystem Linux.
-  
+
 Download and install Chrome (Linux):
+
 ```
 sudo apt update && sudo apt -y upgrade && sudo apt -y autoremove
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
@@ -52,7 +53,6 @@ google-chrome --version
 
 Just make sure you have installed Chrome broswer.
 
-
 Pre-Order Data
 
 - exclude.xls
@@ -63,10 +63,9 @@ A list of Chinese peoduct title which are not able to provide pre order service 
 
 A list of keywords that are allow for pre order and a column of period indicator, keywords are usually are brand name or series name.
 
-- period_template.xls
+* period_template.xls
+
 The template of the pre-order message in both Chinese and English.
-
-
 
 Shopline API Reference
 
