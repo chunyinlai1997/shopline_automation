@@ -325,7 +325,7 @@ class Preorder():
             if status == "active" and is_preorder == True:
                 for exclude_item in exclude_list_items:
                         if chinese_name in exclude_item:
-                            print(chinese_name)
+                            print("Product", chinese_name, "in exlcude list, add to close pre-order")
                             process_list.append([sku_id, has_variant, chinese_name])
                             continue
         
@@ -381,7 +381,8 @@ class Preorder():
                             if not_in_exclude_list:
                                 print("Found product:", chinese_name, "SKU:", sku_id)
                                 process_list.append([sku_id, has_variant, search_for[key], chinese_name])
-
+                            else:
+                                print("The product", chinese_name,"is in exclude list.")
         print("Collected data....")
         print("Process items: ")
         print(process_list) 
