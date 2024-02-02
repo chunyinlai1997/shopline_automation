@@ -8,6 +8,7 @@ import json
 import time
 import xlrd
 import logging
+import openpyxl
 import requests
 import os
 
@@ -34,19 +35,31 @@ class Preorder():
     def shopline_login(self, driver: webdriver.Chrome) -> None:
         self.login_handler.shopline_login(driver)
 
-    def xls_to_list(self, path: str) -> list:
-        workbook = xlrd.open_workbook(path)
-        worksheet = workbook.sheet_by_index(0)
-        num_rows = worksheet.nrows
-        num_cols = worksheet.ncols
-        data = []
+    def xlsx_to_list(self, path: str) -> list:
+        if path.endswith('.xls'):
+            workbook = xlrd.open_workbook(path)
+            worksheet = workbook.sheet_by_index(0)
+            num_rows = worksheet.nrows
+            num_cols = worksheet.ncols
+            data = []
 
-        for row_idx in range(num_rows):
-            row_data = []
-            for col_idx in range(num_cols):
-                cell_value = worksheet.cell_value(row_idx, col_idx)
-                row_data.append(cell_value)
-            data.append(row_data)    
+            for row_idx in range(num_rows):
+                row_data = []
+                for col_idx in range(num_cols):
+                    cell_value = worksheet.cell_value(row_idx, col_idx)
+                    row_data.append(cell_value)
+                data.append(row_data)
+
+        elif path.endswith('.xlsx'):
+            workbook = openpyxl.load_workbook(path)
+            worksheet = workbook.active
+            data = []
+
+            for row in worksheet.iter_rows(values_only=True):
+                data.append(list(row))
+
+        else:
+            raise ValueError("Unsupported file format. Only .xls and .xlsx files are supported.")
 
         return data
     
@@ -92,7 +105,7 @@ class Preorder():
         return False  # Click failed after max_attempts
 
     def period_type_handler(self, period_type) -> (str, str):
-        words = self.xls_to_list('template/period_template.xls')
+        words = self.xlsx_to_list('template/period_template.xlsx')
         words.pop(0)
         
         type_mapping = {
@@ -303,7 +316,7 @@ class Preorder():
         self.shopline_login(driver)
         time.sleep(1)
         
-        exclude_list = self.xls_to_list('search/exclude.xls')
+        exclude_list = self.xlsx_to_list('search/exclude.xlsx')
         exclude_list.pop(0)
         exclude_list_items = [item for sublist in exclude_list for item in sublist]
         print("Your exclude list:")
@@ -341,10 +354,10 @@ class Preorder():
         driver = self.webdriver.get_driver()
         process_list = []
         self.shopline_login(driver)
-        data = self.xls_to_list('search/namelist.xls')
+        data = self.xlsx_to_list('search/namelist.xlsx')
         data.pop(0)
         search_for = dict([[row[0], row[1]] for row in data])
-        exclude_list = self.xls_to_list('search/exclude.xls')
+        exclude_list = self.xlsx_to_list('search/exclude.xlsx')
         exclude_list.pop(0)
         exclude_list_items = [item for sublist in exclude_list for item in sublist]
         print("Your exclude list:")
@@ -437,7 +450,7 @@ class Preorder():
         open_preorder_process_list = []
         close_preorder_process_list = []
 
-        data = self.xls_to_list('search/namelist.xls')
+        data = self.xlsx_to_list('search/namelist.xlsx')
         data.pop(0)
         #search_for = dict([[row[0], row[1]] for row in data])
 
